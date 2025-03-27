@@ -1,17 +1,10 @@
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { SkedPalSyncSettings, DEFAULT_SETTINGS } from './settings';
 
 // Remember to rename these classes and interfaces!
 
-interface MyPluginSettings {
-	mySetting: string;
-}
-
-const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: 'default'
-}
-
-export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
+export default class SkedPalSyncPlugin extends Plugin {
+	settings: SkedPalSyncSettings;
 
 	async onload() {
 		await this.loadSettings();
@@ -66,7 +59,7 @@ export default class MyPlugin extends Plugin {
 		});
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
+        this.addSettingTab(new SkedPalSyncSettingTab(this.app, this));
 
 		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
 		// Using this function will automatically remove the event listener when this plugin is disabled.
@@ -82,9 +75,9 @@ export default class MyPlugin extends Plugin {
 
 	}
 
-	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-	}
+    async loadSettings() {
+        this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+      }
 
 	async saveSettings() {
 		await this.saveData(this.settings);
@@ -112,28 +105,115 @@ class SampleModal extends Modal {
 	}
 }
 
-class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
+class SkedPalSyncSettingTab extends PluginSettingTab {
+    plugin: SkedPalSyncPlugin;
 
-	constructor(app: App, plugin: MyPlugin) {
-		super(app, plugin);
-		this.plugin = plugin;
-	}
+    constructor(app: App, plugin: SkedPalSyncPlugin) {
+      super(app, plugin);
+      this.plugin = plugin;
+    }
 
-	display(): void {
-		const {containerEl} = this;
+    display(): void {
+      const { containerEl } = this;
+      containerEl.empty();
+      containerEl.createEl("h2", { text: "SkedPal Sync Settings" });
 
-		containerEl.empty();
+      new Setting(containerEl)
+        .setName("SkedPal Email Address")
+        .setDesc("The email address used to send tasks to SkedPal.")
+        .addText(text =>
+          text
+            .setPlaceholder("yourname@skedpal.com")
+            .setValue(this.plugin.settings.skedpalEmail)
+            .onChange(async (value) => {
+              this.plugin.settings.skedpalEmail = value;
+              await this.plugin.saveSettings();
+            }));
 
-		new Setting(containerEl)
-			.setName('Setting #1')
-			.setDesc('It\'s a secret')
-			.addText(text => text
-				.setPlaceholder('Enter your secret')
-				.setValue(this.plugin.settings.mySetting)
-				.onChange(async (value) => {
-					this.plugin.settings.mySetting = value;
-					await this.plugin.saveSettings();
-				}));
-	}
-}
+      new Setting(containerEl)
+        .setName("Default Priority")
+        .setDesc("Used if no priority is set in the task metadata.")
+        .addDropdown(drop =>
+          drop.addOptions({ "Low": "Low", "Medium": "Medium", "High": "High" })
+              .setValue(this.plugin.settings.defaultPriority)
+              .onChange(async (value) => {
+                this.plugin.settings.defaultPriority = value;
+                await this.plugin.saveSettings();
+              }));
+
+      new Setting(containerEl)
+        .setName("Default Project")
+        .setDesc("Optional default project to assign if none is specified.")
+        .addText(text =>
+          text.setValue(this.plugin.settings.defaultProject)
+            .onChange(async (value) => {
+              this.plugin.settings.defaultProject = value;
+              await this.plugin.saveSettings();
+            }));
+
+      new Setting(containerEl)
+        .setName("Default Tags")
+        .setDesc("Comma-separated list of default tags (e.g., work,writing).")
+        .addText(text =>
+          text.setValue(this.plugin.settings.defaultTags)
+            .onChange(async (value) => {
+              this.plugin.settings.defaultTags = value;
+              await this.plugin.saveSettings();
+            }));
+
+      new Setting(containerEl)
+        .setName("Default Estimate")
+        .setDesc("Estimated time if not set in the task (e.g., 30m, 1h).")
+        .addText(text =>
+          text.setValue(this.plugin.settings.defaultEstimate)
+            .onChange(async (value) => {
+              this.plugin.settings.defaultEstimate = value;
+              await this.plugin.saveSettings();
+            }));
+
+      new Setting(containerEl)
+        .setName("Auto-Send on Save")
+        .setDesc("Automatically email new tasks when the file is saved.")
+        .addToggle(toggle =>
+          toggle.setValue(this.plugin.settings.autoSendOnSave)
+            .onChange(async (value) => {
+              this.plugin.settings.autoSendOnSave = value;
+              await this.plugin.saveSettings();
+            }));
+
+      containerEl.createEl("h3", { text: "Priority Mapping" });
+      containerEl.createEl("p", {
+        text: "Map Obsidian Tasks priorities to SkedPal priorities."
+      });
+
+      const priorities = ['Lowest', 'Low', 'Normal', 'Medium', 'High', 'Highest'];
+
+      priorities.forEach(priority => {
+        new Setting(containerEl)
+        .setName(priority)
+        .addText(text =>
+          text
+          .setPlaceholder(`SkedPal value for ${priority}`)
+          .setValue(this.plugin.settings.priorityMap[priority] || '')
+          .onChange(async (value) => {
+            this.plugin.settings.priorityMap[priority] = value;
+            await this.plugin.saveSettings();
+          })
+        );
+      });
+
+      containerEl.createEl("h3", { text: "Sync Filtering" });
+
+      new Setting(containerEl)
+       .setName("Required Tag for Sync")
+       .setDesc("If set, only tasks with this tag will be synced to SkedPal. Leave blank to sync all tasks.")
+       .addText(text =>
+         text
+           .setPlaceholder("e.g., #skedpal")
+           .setValue(this.plugin.settings.requiredTagForSync)
+           .onChange(async (value) => {
+             this.plugin.settings.requiredTagForSync = value.trim();
+             await this.plugin.saveSettings();
+           }));
+    }
+  }
