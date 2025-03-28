@@ -5,20 +5,21 @@ export interface PriorityMap {
 export interface SkedPalSyncSettings {
   skedpalEmail: string;
   defaultPriority: string;
-  defaultProject: string;
+  defaultParentTask: string;
   defaultTags: string;
-  defaultEstimate: string;
+  defaultDuration: string;
   autoSendOnSave: boolean;
   priorityMap: PriorityMap;
   requiredTagForSync: string;
+  globalTaskFilter: string;
 };
 
 export const DEFAULT_SETTINGS: SkedPalSyncSettings = {
   skedpalEmail: '',
   defaultPriority: 'Medium',
-  defaultProject: '',
+  defaultParentTask: '',
   defaultTags: '',
-  defaultEstimate: '',
+  defaultDuration: '',
   autoSendOnSave: false,
   priorityMap: {
     Lowest: 'Low',
@@ -28,5 +29,6 @@ export const DEFAULT_SETTINGS: SkedPalSyncSettings = {
     High: 'High',
     Highest: 'High',
   },
-  requiredTagForSync: '',  // Leave empty by default to allow all tasks
+  requiredTagForSync: '',
+  globalTaskFilter: '#task',
 };

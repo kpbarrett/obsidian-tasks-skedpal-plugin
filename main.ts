@@ -1,13 +1,14 @@
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
 import { SkedPalSyncSettings, DEFAULT_SETTINGS } from './settings';
-
-// Remember to rename these classes and interfaces!
+//import { runTestParser } from './testParser';
 
 export default class SkedPalSyncPlugin extends Plugin {
 	settings: SkedPalSyncSettings;
 
 	async onload() {
 		await this.loadSettings();
+//        runTestParser(); // TEMPORARY: remove after confirming output
+        console.log('Loaded SkedPal Sync plugin');
 
 		// This creates an icon in the left ribbon.
 		const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
@@ -142,12 +143,12 @@ class SkedPalSyncSettingTab extends PluginSettingTab {
               }));
 
       new Setting(containerEl)
-        .setName("Default Project")
-        .setDesc("Optional default project to assign if none is specified.")
+        .setName("Default Parent Task")
+        .setDesc("Optional default parent task to assign if none is specified.")
         .addText(text =>
-          text.setValue(this.plugin.settings.defaultProject)
+          text.setValue(this.plugin.settings.defaultParentTask)
             .onChange(async (value) => {
-              this.plugin.settings.defaultProject = value;
+              this.plugin.settings.defaultParentTask = value;
               await this.plugin.saveSettings();
             }));
 
@@ -162,12 +163,12 @@ class SkedPalSyncSettingTab extends PluginSettingTab {
             }));
 
       new Setting(containerEl)
-        .setName("Default Estimate")
-        .setDesc("Estimated time if not set in the task (e.g., 30m, 1h).")
+        .setName("Default Duration")
+        .setDesc("Task duration if not set in the task (e.g., 30m, 1h).")
         .addText(text =>
-          text.setValue(this.plugin.settings.defaultEstimate)
+          text.setValue(this.plugin.settings.defaultDuration)
             .onChange(async (value) => {
-              this.plugin.settings.defaultEstimate = value;
+              this.plugin.settings.defaultDuration = value;
               await this.plugin.saveSettings();
             }));
 
@@ -215,5 +216,19 @@ class SkedPalSyncSettingTab extends PluginSettingTab {
              this.plugin.settings.requiredTagForSync = value.trim();
              await this.plugin.saveSettings();
            }));
+
+      containerEl.createEl("h3", { text: "Task Selection" });
+
+      new Setting(containerEl)
+        .setName("Global Filter")
+        .setDesc("If you configured this in Tasks, put the same value here.")
+        .addText(text =>
+          text
+            .setPlaceholder("#task")
+            .setValue(this.plugin.settings.globalTaskFilter)
+            .onChange(async (value) => {
+              this.plugin.settings.globalTaskFilter = value.trim();
+              await this.plugin.saveSettings();
+            }));
     }
   }
