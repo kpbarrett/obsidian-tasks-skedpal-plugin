@@ -1,11 +1,10 @@
 {
-	"id": "sample-plugin",
-	"name": "Sample Plugin",
-	"version": "1.0.0",
+	"id": "tasks-skedpal-plugin",
+	"name": "Tasks To SkedPal Plugin",
+	"version": "0.0.1",
 	"minAppVersion": "0.15.0",
-	"description": "Demonstrates some of the capabilities of the Obsidian API.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"description": "Link your tasks to SkedPal. This plugin allows you to send your tasks from Obsidian to SkedPal, a smart scheduling tool that helps you manage your time and tasks effectively.",
+    "main": "main.js",
+	"author": "Kevin Barrett",
 	"isDesktopOnly": false
 }
