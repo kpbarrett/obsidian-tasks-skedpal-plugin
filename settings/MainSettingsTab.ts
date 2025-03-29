@@ -1,13 +1,16 @@
-import { PluginSettingTab, Setting } from "obsidian";
+import { Plugin, PluginSettingTab, Setting, Notice } from "obsidian";
 import type { SkedPalSyncSettings } from "../types/settings";
+import type { GmailAuth } from "../auth/GmailAuth";
 
 export class MainSettingsTab extends PluginSettingTab {
     constructor(
         app: App,
+        plugin: Plugin,
         private settings: SkedPalSyncSettings,
-        private save: () => Promise<void>
+        private save: () => Promise<void>,
+        private auth: GmailAuth
     ) {
-        super(app, app.plugins.plugins["tasks-skedpal-plugin"]);
+        super(app, plugin);
     }
 
     display(): void {
@@ -58,6 +61,31 @@ export class MainSettingsTab extends PluginSettingTab {
                     .onChange(async (value) => {
                         this.settings.requiredTagForSync = value.trim();
                         await this.save();
+                    })
+            );
+
+        containerEl.createEl("h3", { text: "Gmail Integration" });
+
+        new Setting(containerEl)
+            .setName("Connect to Gmail")
+            .setDesc(
+                "Authorize this plugin to send tasks using your Gmail account."
+            )
+            .addButton((btn) =>
+                btn
+                    .setButtonText("Authorize")
+                    .setCta()
+                    .onClick(async () => {
+                        try {
+                            const token = await this.auth.getAccessToken();
+                            new Notice("Gmail authorization successful.");
+                            console.log("Access token:", token);
+                        } catch (err) {
+                            console.error(err);
+                            new Notice(
+                                "Gmail authorization failed. Check console."
+                            );
+                        }
                     })
             );
     }

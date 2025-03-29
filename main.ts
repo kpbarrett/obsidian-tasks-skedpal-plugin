@@ -10,8 +10,9 @@ import {
 } from "obsidian";
 import { SkedPalSyncSettings, DEFAULT_SETTINGS } from "./types/settings";
 import { MainSettingsTab } from "./settings/MainSettingsTab";
-import { GmailSettingsTab } from "./settings/GmailSettingsTab";
 import { GmailAuth } from "./auth/GmailAuth";
+import { GmailSender } from "./email/GmailSender";
+import { SyncService } from "./sync/SyncService";
 import { runTestParser } from "./testParser";
 
 export default class SkedPalSyncPlugin extends Plugin {
@@ -77,14 +78,32 @@ export default class SkedPalSyncPlugin extends Plugin {
             },
         });
 
+        // Setup Gmail sender
+        const auth = new GmailAuth(this);
+        const sender = new GmailSender(() => auth.getAccessToken());
+
+        // Setup and register SyncService
+        const syncService = new SyncService(
+            this.app,
+            this.app.vault,
+            sender,
+            this.settings,
+            this.loadData.bind(this),
+            this.saveData.bind(this)
+        );
+
+        await syncService.initialize();
+        syncService.register();
+
         this.addSettingTab(
             new MainSettingsTab(
                 this.app,
+                this,
                 this.settings,
-                this.saveSettings.bind(this)
+                this.saveSettings.bind(this),
+                new GmailAuth(this)
             )
         );
-        this.addSettingTab(new GmailSettingsTab(this.app, new GmailAuth(this)));
 
         // If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
         // Using this function will automatically remove the event listener when this plugin is disabled.
