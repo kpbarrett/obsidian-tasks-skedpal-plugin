@@ -1,0 +1,19 @@
+// See https://containers.dev/implementors/json_reference/ for configuration reference
+{
+	"name": "Obsidian Tasks SkedPal Plugin",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+
+"remoteUser": "node",
+"customizations": {
+	"vscode": {
+		"extensions": [
+			"eamodio.gitlens",
+			"dbaeumer.vscode-eslint",
+			"esbenp.prettier-vscode",
+			"ms-playwright.playwright"
+		]
+	}
+}
+}
