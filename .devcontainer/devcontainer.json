@@ -1,19 +1,53 @@
-// See https://containers.dev/implementors/json_reference/ for configuration reference
 {
-	"name": "Obsidian Tasks SkedPal Plugin",
-	"build": {
-		"dockerfile": "Dockerfile"
-	},
+  "name": "Obsidian Tasks SkedPal Plugin",
+  "build": { "dockerfile": "Dockerfile" },
 
-"remoteUser": "node",
-"customizations": {
-	"vscode": {
-		"extensions": [
-			"eamodio.gitlens",
-			"dbaeumer.vscode-eslint",
-			"esbenp.prettier-vscode",
-			"ms-playwright.playwright"
-		]
-	}
-}
+  "workspaceFolder": "/workspaces/obsidian-tasks-skedpal-plugin",
+  "remoteUser": "node",
+  "overrideCommand": true,
+
+  "mounts": [
+    // Portable HOME: survives rebuilds; holds caches, global bins, Serena config, etc.
+    "source=${localEnv:HOME}/.containers/dev-home,target=/home/node,type=bind,consistency=cached",
+    // Fast store for pnpm (optional but recommended)
+    "source=pnpm-store,target=/home/node/.local/state/pnpm-store,type=volume"
+  ],
+
+  "containerEnv": {
+    "XDG_CONFIG_HOME": "/home/node/.config",
+    "XDG_CACHE_HOME": "/home/node/.cache",
+    "XDG_DATA_HOME": "/home/node/.local/share",
+    "XDG_STATE_HOME": "/home/node/.local/state",
+    "XDG_BIN_HOME": "/home/node/.local/bin",
+    "PNPM_HOME": "/home/node/.local/bin"
+  },
+
+  // PATH applies to the remote VS Code session (and shells it launches)
+  // Keep system dirs, then add our local bins.
+  "remoteEnv": {
+    "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/node/.local/bin:/workspaces/obsidian-tasks-skedpal-plugin/node_modules/.bin"
+  },
+
+  "onCreateCommand": {
+    "00-mkdirs": "mkdir -p $XDG_CONFIG_HOME $XDG_CACHE_HOME $XDG_DATA_HOME $XDG_STATE_HOME $XDG_BIN_HOME",
+    "01-corepack": "corepack enable && corepack prepare pnpm@latest --activate"
+  },
+
+  "postCreateCommand": {
+    "10-install": "if [ -f pnpm-lock.yaml ] || [ -f package.json ]; then pnpm install || true; fi",
+    "20-msg": "echo 'Devcontainer ready. Playwright browsers will install on first run and persist under ~/.cache/ms-playwright.'"
+  },
+
+    "customizations": {
+    "vscode": {
+      "extensions": [
+        "eamodio.gitlens",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-playwright.playwright",
+        "Continue.continue"
+      ]
+    }
+  }
+
 }
