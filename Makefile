@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 DATE := $(shell date +%F)
 
-.PHONY: plan test report cycle ci clean-artifacts
+.PHONY: plan test report cycle ci clean-artifacts process-next-task
 
 plan:
 	@echo "== Plan ==" && ls -1 ops/tasks/inbox || true
@@ -26,3 +26,7 @@ ci: ## nightly: lint, unit, e2e, pack
 
 clean-artifacts:
 	rm -rf playwright-report test-results || true
+
+process-next-task:
+	node scripts/process_next_task.js
+

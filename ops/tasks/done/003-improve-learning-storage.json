@@ -1,0 +1,10 @@
+{
+  "goal": "Improve learning storage system organization",
+  "requires": [
+    ".serena/learnings/index.md",
+    ".serena/learnings/skills/process_next_task.md",
+    ".serena/learnings/patterns/index.md",
+    ".serena/learnings/workflows/index.md"
+  ],
+  "notes": "Reorganize learning storage system based on recommended improvements: 1) Create proper markdown documentation, 2) Update index file, 3) Add learning categories"
+}
