@@ -15,40 +15,40 @@ This document serves as the single source of truth for all project requirements.
 - **REQ-005**: Support for SkedPal's time blocking and scheduling features
 - **REQ-006**: Authentication and API integration with SkedPal
 
-### 3. Multi-Agent System Requirements
-- **REQ-007**: Four-agent architecture (Developer, Tester, Engineer, General)
-- **REQ-008**: Task routing based on task type and agent specialization
-- **REQ-009**: Automated task processing workflow
-- **REQ-010**: Progress monitoring and reporting capabilities
-
-### 4. User Experience
+### 3. User Experience
 - **REQ-011**: Simple configuration and setup process
 - **REQ-012**: Clear status indicators for synchronization
 - **REQ-013**: Error handling and recovery mechanisms
 
 ## Technical Requirements
 
-### 5. Performance
+### 4. Performance
 - **REQ-014**: Synchronization should complete within 30 seconds for typical vaults
 - **REQ-015**: Plugin should not significantly impact Obsidian performance
 - **REQ-016**: Efficient memory usage for large task lists
 
-### 6. Reliability
+### 5. Reliability
 - **REQ-017**: Data integrity must be maintained during synchronization
 - **REQ-018**: Graceful handling of network interruptions
 - **REQ-019**: Conflict resolution for simultaneous edits
 
 ## Development Requirements
 
-### 7. Testing
+### 6. Testing
 - **REQ-020**: Comprehensive unit test coverage (>80%)
 - **REQ-021**: Integration tests for Obsidian and SkedPal APIs
 - **REQ-022**: End-to-end testing of synchronization workflow
 
-### 8. Documentation
+### 7. Documentation
 - **REQ-023**: Clear installation and setup instructions
 - **REQ-024**: API documentation for extension developers
 - **REQ-025**: Troubleshooting guide for common issues
+
+### 8. Multi-Agent System Requirements
+- **REQ-007**: Four-agent architecture (Developer, Tester, Engineer, General)
+- **REQ-008**: Task routing based on task type and agent specialization
+- **REQ-009**: Automated task processing workflow
+- **REQ-010**: Progress monitoring and reporting capabilities
 
 ## Priority Matrix
 

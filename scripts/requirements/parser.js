@@ -32,7 +32,7 @@ class RequirementsParser {
 
         for (const line of lines) {
             // Detect section headers
-            if (line.startsWith('### ')) {
+            if (line.startsWith('## ')) {
                 if (line.includes('Core Requirements')) {
                     currentSection = 'core';
                 } else if (line.includes('Technical Requirements')) {
@@ -99,11 +99,11 @@ class RequirementsParser {
         if (!this.requirements) return;
 
         let content = fs.readFileSync(this.requirementsFile, 'utf8');
-        
+
         // Update status in the priority matrix
         const lines = content.split('\n');
         const matrixStart = lines.findIndex(line => line.includes('| Priority Matrix'));
-        
+
         if (matrixStart !== -1) {
             for (let i = matrixStart + 3; i < lines.length; i++) {
                 if (lines[i].includes('|') && !lines[i].includes('---')) {
@@ -182,7 +182,7 @@ if (require.main === module) {
     const parser = new RequirementsParser();
     const requirements = parser.parseRequirements();
     console.log('Parsed requirements:', JSON.stringify(requirements, null, 2));
-    
+
     const tasks = parser.generateTasksFromRequirements();
     console.log('Generated tasks:', JSON.stringify(tasks, null, 2));
 }

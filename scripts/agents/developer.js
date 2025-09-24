@@ -5,18 +5,19 @@ const path = require('path');
 
 function processDeveloperTask(task) {
     console.log('Developer processing task:', task.title);
-    
+
     // Developer handles implementation tasks
     if (task.type === 'implement-feature') {
-        console.log('Implementing feature:', task.feature);
+        console.log('Implementing requirement:', task.requirement);
+        console.log('Description:', task.description);
         // Implementation logic would go here
-        return { success: true, message: `Feature "${task.feature}" implemented` };
+        return { success: true, message: `Requirement "${task.requirement}" implemented: ${task.description}` };
     } else if (task.type === 'fix-bug') {
         console.log('Fixing bug:', task.bug);
         // Bug fixing logic would go here
         return { success: true, message: `Bug "${task.bug}" fixed` };
     }
-    
+
     return { success: false, message: 'Unknown task type for Developer' };
 }
 

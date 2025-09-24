@@ -52,6 +52,10 @@ agent-status: ## Show current agent system status
 agent-process: process-next-task ## Alias for process-next-task
 	@echo "Task processed using agent system"
 
+agent-ingest-requirements: ## Ingest requirements into the system
+	@echo "== Ingesting Requirements =="
+	node scripts/agents/orchestrator.js --requirements
+
 help: ## Show this help
 	@echo "Available commands:"
 	@echo ""
