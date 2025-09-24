@@ -23,18 +23,51 @@ class EnhancedOrchestrator {
             const tasks = this.taskGenerator.generateTasksFromRequirements();
             console.log(`Generated ${tasks.length} tasks from requirements`);
 
-            // Process each task
-            const results = [];
+            // Create task files in ops/tasks/inbox instead of direct processing
+            const createdTasks = [];
             for (const task of tasks) {
-                const result = await this.processTaskWithAgent(task);
-                results.push({ task: task.id, result });
+                const taskFile = await this.createTaskFile(task);
+                createdTasks.push({ task: task.id, file: taskFile });
             }
 
-            return results;
+            console.log(`Created ${createdTasks.length} task files in ops/tasks/inbox`);
+            return createdTasks;
         } catch (error) {
             console.error('Error in requirements pipeline:', error);
             return { success: false, error: error.message };
         }
+    }
+
+    async createTaskFile(task) {
+        const inboxDir = path.join(process.cwd(), 'ops/tasks/inbox');
+
+        // Ensure inbox directory exists
+        if (!fs.existsSync(inboxDir)) {
+            fs.mkdirSync(inboxDir, { recursive: true });
+        }
+
+        // Create task file with proper structure
+        const taskId = task.id || `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const taskFileName = `${taskId}.json`;
+        const taskFilePath = path.join(inboxDir, taskFileName);
+
+        // Format task according to expected structure
+        const taskData = {
+            id: taskId,
+            type: task.type,
+            title: task.title,
+            feature: task.description, // Use description as feature
+            requirement: task.requirement,
+            priority: task.priority,
+            agent: task.agent,
+            status: 'planned',
+            createdAt: new Date().toISOString()
+        };
+
+        fs.writeFileSync(taskFilePath, JSON.stringify(taskData, null, 2));
+        console.log(`Created task file: ${taskFileName}`);
+
+        return taskFileName;
     }
 
     routeTaskToAgent(task) {

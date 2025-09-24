@@ -1,0 +1,11 @@
+{
+  "id": "task-1758752250569-REQ-008",
+  "type": "implement-feature",
+  "title": "Implement: REQ-008 - Task routing based on task type and agent specialization",
+  "feature": "Task routing based on task type and agent specialization",
+  "requirement": "REQ-008",
+  "priority": "medium",
+  "agent": "developer",
+  "status": "planned",
+  "createdAt": "2025-09-24T22:17:30.618Z"
+}

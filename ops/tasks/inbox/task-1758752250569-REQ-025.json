@@ -1,0 +1,11 @@
+{
+  "id": "task-1758752250569-REQ-025",
+  "type": "implement-feature",
+  "title": "Implement: REQ-025 - Troubleshooting guide for common issues",
+  "feature": "Troubleshooting guide for common issues",
+  "requirement": "REQ-025",
+  "priority": "medium",
+  "agent": "developer",
+  "status": "planned",
+  "createdAt": "2025-09-24T22:17:30.616Z"
+}
