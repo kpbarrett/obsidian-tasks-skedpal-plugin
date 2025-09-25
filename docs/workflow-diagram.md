@@ -1,13 +1,13 @@
-# Task Processing Workflow Diagram
+# Job Processing Workflow Diagram
 
 ## Overview
 
 ```mermaid
 graph TD
-    A[Task Created] --> B[Inbox Directory]
-    B --> C[Process Next Task]
+    A[Job Created] --> B[Inbox Directory]
+    B --> C[Process Next Job]
     C --> D[Orchestrator]
-    D --> E{Route Task}
+    D --> E{Route Job}
 
     E -->|implement-feature| F[Developer Agent]
     E -->|fix-bug| F
@@ -17,7 +17,7 @@ graph TD
     E -->|monitor-progress| I
     E -->|unknown type| I
 
-    F --> J[Execute Task Logic]
+    F --> J[Execute Job Logic]
     G --> J
     H --> J
     I --> J
@@ -29,7 +29,7 @@ graph TD
     J --> N[Create Report]
     N --> O[Reports Directory]
 
-    H --> P[Create New Tasks]
+    H --> P[Create New Jobs]
     P --> B
 
     style A fill:#e1f5fe
@@ -52,63 +52,63 @@ graph TD
 
 ## Detailed Flow
 
-### 1. Task Creation
-- Tasks are created as JSON files in `ops/tasks/inbox/`
+### 1. Job Creation
+- Jobs are created as JSON files in `ops/jobs/inbox/`
 - Files are processed in lexicographical order
-- Each task contains metadata and specifications
+- Each job contains metadata and specifications
 
-### 2. Task Processing
-- `scripts/process_next_task.js` is executed
-- The script reads the highest-priority task from inbox
+### 2. Job Processing
+- `scripts/process_next_job.js` is executed
+- The script reads the highest-priority job from inbox
 - Required files are created as stubs if missing
 
 ### 3. Agent Routing
-- Orchestrator analyzes task type and properties
+- Orchestrator analyzes job type and properties
 - Routes to appropriate agent:
  - **Developer**: Feature implementation, bug fixes
  - **Tester**: Test execution, result recording
- - **Engineer**: Test analysis, task generation
+ - **Engineer**: Test analysis, job generation
  - **General**: Coordination, monitoring, defaults
 
-### 4. Task Execution
+### 4. Job Execution
 - Agent-specific logic is executed
 - Results are captured and processed
 - Any created files are tracked
 
 ### 5. Result Handling
-- Success: Task moved to `ops/tasks/done/`
-- Failure: Task moved to `ops/tasks/working/` for retry
+- Success: Job moved to `ops/jobs/done/`
+- Failure: Job moved to `ops/jobs/working/` for retry
 - Report created in dated directory under `ops/reports/`
 
 ### 6. Follow-up Actions
-- Engineer agent may create new tasks based on analysis
-- New tasks are placed back in inbox for processing
-- Continuous workflow until all tasks are completed
+- Engineer agent may create new jobs based on analysis
+- New jobs are placed back in inbox for processing
+- Continuous workflow until all jobs are completed
 
 ## File Structure
 
 `
 ops/
-├── tasks/
-│   ├── inbox/           # New tasks waiting processing
-│   ├── working/         # Tasks being retried after failure
-│   └── done/           # Successfully completed tasks
+├── jobs/
+│   ├── inbox/           # New jobs waiting processing
+│   ├── working/         # Jobs being retried after failure
+│   └── done/           # Successfully completed jobs
 └── reports/
     └── YYYY-MM-DD/     # Dated report directories
-        └── summary.jsonl  # Task execution logs
+        └── summary.jsonl  # Job execution logs
 
 scripts/
 └── agents/
-    ├── orchestrator.js  # Task routing logic
+    ├── orchestrator.js  # Job routing logic
     ├── developer.js     # Feature/bug implementation
     ├── tester.js        # Test execution
-    ├── engineer.js      # Analysis and task generation
+    ├── engineer.js      # Analysis and job generation
     └── general.js       # Coordination and defaults
 `
 
 ## Error Recovery
 
-- Failed tasks remain in working directory
+- Failed jobs remain in working directory
 - Manual intervention may be required
-- System continues processing other tasks
+- System continues processing other jobs
 - Detailed error information in reports"

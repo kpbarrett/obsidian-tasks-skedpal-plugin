@@ -123,50 +123,50 @@ class RequirementsParser {
         fs.writeFileSync(this.requirementsFile, lines.join('\n'));
     }
 
-    generateTasksFromRequirements() {
+    generateJobsFromRequirements() {
         if (!this.requirements) {
             this.parseRequirements();
         }
 
-        const tasks = [];
+        const jobs = [];
         const plannedRequirements = this.getRequirementsByStatus('planned');
 
         for (const req of plannedRequirements) {
-            const task = this.requirementToTask(req);
-            if (task) {
-                tasks.push(task);
+            const job = this.requirementToJob(req);
+            if (job) {
+                jobs.push(job);
             }
         }
 
-        return tasks;
+        return jobs;
     }
 
-    requirementToTask(requirement) {
-        // Map requirement types to task types and agents
-        let taskType, agent;
+    requirementToJob(requirement) {
+        // Map requirement types to job types and agents
+        let jobType, agent;
 
         if (requirement.id.startsWith('REQ-0')) {
             // Core requirements (REQ-001 to REQ-013)
-            taskType = 'implement-feature';
+            jobType = 'implement-feature';
             agent = 'developer';
         } else if (requirement.id.startsWith('REQ-01')) {
             // Technical requirements (REQ-014 to REQ-019)
-            taskType = 'implement-feature';
+            jobType = 'implement-feature';
             agent = 'developer';
         } else if (requirement.id.startsWith('REQ-02')) {
             // Development requirements (REQ-020 to REQ-025)
             if (requirement.id.includes('REQ-020') || requirement.id.includes('REQ-021') || requirement.id.includes('REQ-022')) {
-                taskType = 'run-test';
+                jobType = 'run-test';
                 agent = 'tester';
             } else {
-                taskType = 'coordinate-workflow';
+                jobType = 'coordinate-workflow';
                 agent = 'general';
             }
         }
 
         return {
-            id: `task-${Date.now()}-${requirement.id}`,
-            type: taskType,
+            id: `job-${Date.now()}-${requirement.id}`,
+            type: jobType,
             title: `Implement requirement: ${requirement.id}`,
             requirement: requirement.id,
             description: requirement.description,
@@ -183,8 +183,8 @@ if (require.main === module) {
     const requirements = parser.parseRequirements();
     console.log('Parsed requirements:', JSON.stringify(requirements, null, 2));
 
-    const tasks = parser.generateTasksFromRequirements();
-    console.log('Generated tasks:', JSON.stringify(tasks, null, 2));
+    const jobs = parser.generateJobsFromRequirements();
+    console.log('Generated jobs:', JSON.stringify(jobs, null, 2));
 }
 
 module.exports = RequirementsParser;
