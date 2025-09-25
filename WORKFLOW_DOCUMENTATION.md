@@ -17,6 +17,7 @@ This workflow has been updated to use `PROJECT_REQUIREMENTS.md` as the single so
 
 ### 3. Agent Processing
 - **Developer**: Implements features and fixes bugs
+- **Test Author**: Creates and maintains test cases, test plans, and test documentation
 - **Tester**: Runs tests and validates implementations
 - **Engineer**: Analyzes results and creates corrective tasks
 - **General**: Coordinates workflow and monitors progress
@@ -53,4 +54,50 @@ This workflow has been updated to use `PROJECT_REQUIREMENTS.md` as the single so
 - **Git commit with task ID**: Include task filename (without extension) in commit message
 - **Commit message format**: `task-XXX: Brief summary of work performed`
 
-### Final Steps
+## Test Author Task Processing Workflow
+
+### Step 1: Test Planning
+- Analyze requirements to identify test scenarios
+- Design comprehensive test cases covering functional and non-functional requirements
+- Create test plans and test strategy documentation
+
+### Step 2: Test Development
+- Write unit tests, integration tests, and end-to-end tests
+- Implement test fixtures and test data
+- Ensure test coverage meets project standards
+- Follow testing best practices and patterns
+
+### Step 3: Test Maintenance
+- Update existing tests when requirements change
+- Refactor tests for better maintainability
+- Review and improve test coverage
+- Document test cases and test procedures
+
+### Step 4: Test Integration
+- Ensure tests integrate properly with CI/CD pipeline
+- Coordinate with Developers for testability requirements
+- Collaborate with Testers for test execution planning
+
+### Step 5: Task Completion
+- **Move task to done directory**: `mv ops/tasks/inbox/task-XXX.json ops/tasks/done/`
+- **Git commit with task ID**: Include task filename (without extension) in commit message
+- **Commit message format**: `task-XXX: Brief summary of test work performed`
+
+## Role Interactions
+
+### Developer ↔ Test Author
+- Developers implement features based on requirements
+- Test Authors create corresponding test cases
+- Collaboration ensures testability and comprehensive coverage
+
+### Test Author ↔ Tester
+- Test Authors provide test cases and test documentation
+- Testers execute tests and report results
+- Feedback loop for test improvement
+
+### All Roles ↔ Engineer
+- Engineer analyzes results from all roles
+- Creates corrective tasks for issues identified
+- Ensures overall system quality
+## Final Steps
+
