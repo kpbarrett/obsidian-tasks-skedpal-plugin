@@ -1,10 +1,10 @@
 SHELL := /bin/bash
 DATE := $(shell date +%F)
 
-.PHONY: plan test report cycle ci clean-artifacts process-next-task agent-test agent-docs agent-status agent-process help
+.PHONY: plan test report cycle ci clean-artifacts process-next-job agent-test agent-docs agent-status agent-process help
 
 plan:
-	@echo "== Plan ==" && ls -1 ops/tasks/inbox || true
+	@echo "== Plan ==" && ls -1 ops/jobs/inbox || true
 
 test:
 	@echo "== Playwright =="
@@ -27,8 +27,8 @@ ci: ## nightly: lint, unit, e2e, pack
 clean-artifacts:
 	rm -rf playwright-report test-results || true
 
-process-next-task:
-	node scripts/process_next_task.js
+process-next-job:
+	node scripts/process_next_job.js
 
 # Agent System Commands
 agent-test: ## Test agent system functionality
@@ -44,13 +44,13 @@ agent-docs: ## Open agent system documentation
 
 agent-status: ## Show current agent system status
 	@echo "== Agent System Status =="
-	@echo "Inbox tasks: $$(ls ops/tasks/inbox/*.json 2>/dev/null | wc -l || echo 0)"
-	@echo "Working tasks: $$(ls ops/tasks/working/*.json 2>/dev/null | wc -l || echo 0)"
-	@echo "Done tasks: $$(ls ops/tasks/done/*.json 2>/dev/null | wc -l || echo 0)"
+	@echo "Inbox jobs: $$(ls ops/jobs/inbox/*.json 2>/dev/null | wc -l || echo 0)"
+	@echo "Working jobs: $$(ls ops/jobs/working/*.json 2>/dev/null | wc -l || echo 0)"
+	@echo "Done jobs: $$(ls ops/jobs/done/*.json 2>/dev/null | wc -l || echo 0)"
 	@echo "Latest report: ops/reports/$(DATE)/summary.jsonl"
 
-agent-process: process-next-task ## Alias for process-next-task
-	@echo "Task processed using agent system"
+agent-process: process-next-job ## Alias for process-next-job
+	@echo "Job processed using agent system"
 
 agent-ingest-requirements: ## Ingest requirements into the system
 	@echo "== Ingesting Requirements =="

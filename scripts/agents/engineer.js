@@ -3,40 +3,40 @@
 const fs = require('fs');
 const path = require('path');
 
-function processEngineerTask(task) {
-    console.log('Engineer processing task:', task.title);
-    
-    // Engineer handles test results and creates new tasks
-    if (task.type === 'analyze-test-results') {
-        console.log('Analyzing test results:', task.results);
-        
+function processEngineerJob(job) {
+    console.log('Engineer processing job:', job.title);
+
+    // Engineer handles test results and creates new jobs
+    if (job.type === 'analyze-test-results') {
+        console.log('Analyzing test results:', job.results);
+
         // Read test results
         const resultsDir = path.join(process.cwd(), 'ops/reports/test-results');
-        const taskDir = path.join(process.cwd(), 'ops/tasks/inbox');
-        
+        const jobDir = path.join(process.cwd(), 'ops/jobs/inbox');
+
         if (!fs.existsSync(resultsDir)) {
             return { success: false, message: 'No test results directory found' };
         }
-        
+
         const resultFiles = fs.readdirSync(resultsDir)
             .filter(file => file.endsWith('.json'))
             .sort()
             .reverse();
-        
+
         if (resultFiles.length === 0) {
             return { success: false, message: 'No test results found' };
         }
-        
-        const newTasks = [];
-        
+
+        const newJobs = [];
+
         // Analyze each test result
         for (const resultFile of resultFiles.slice(0, 5)) { // Limit to recent 5 results
             const resultPath = path.join(resultsDir, resultFile);
             const result = JSON.parse(fs.readFileSync(resultPath, 'utf-8'));
-            
+
             if (!result.success) {
-                // Create bug fix task for failed tests
-                const bugTask = {
+                // Create bug fix job for failed tests
+                const bugJob = {
                     id: `bug-${Date.now()}`,
                     type: 'fix-bug',
                     title: `Fix failed test: ${result.test}`,
@@ -45,15 +45,15 @@ function processEngineerTask(task) {
                     timestamp: new Date().toISOString(),
                     agent: 'developer'
                 };
-                
-                const bugTaskFile = path.join(taskDir, `${bugTask.id}.json`);
-                fs.writeFileSync(bugTaskFile, JSON.stringify(bugTask, null, 2));
-                newTasks.push(bugTask.id);
+
+                const bugJobFile = path.join(jobDir, `${bugJob.id}.json`);
+                fs.writeFileSync(bugJobFile, JSON.stringify(bugJob, null, 2));
+                newJobs.push(bugJob.id);
             }
         }
-        
-        // Create follow-up test task
-        const testTask = {
+
+        // Create follow-up test job
+        const testJob = {
             id: `test-${Date.now()}`,
             type: 'run-test',
             title: 'Run comprehensive test suite',
@@ -62,26 +62,26 @@ function processEngineerTask(task) {
             timestamp: new Date().toISOString(),
             agent: 'tester'
         };
-        
-        const testTaskFile = path.join(taskDir, `${testTask.id}.json`);
-        fs.writeFileSync(testTaskFile, JSON.stringify(testTask, null, 2));
-        newTasks.push(testTask.id);
-        
-        return { 
-            success: true, 
-            message: `Analyzed ${resultFiles.length} test results, created ${newTasks.length} new tasks`,
-            newTasks: newTasks
+
+        const testJobFile = path.join(jobDir, `${testJob.id}.json`);
+        fs.writeFileSync(testJobFile, JSON.stringify(testJob, null, 2));
+        newJobs.push(testJob.id);
+
+        return {
+            success: true,
+            message: `Analyzed ${resultFiles.length} test results, created ${newJobs.length} new jobs`,
+            newJobs: newJobs
         };
     }
-    
-    return { success: false, message: 'Unknown task type for Engineer' };
+
+    return { success: false, message: 'Unknown job type for Engineer' };
 }
 
 // Export for testing
 if (require.main === module) {
-    const task = JSON.parse(process.argv[2] || '{}');
-    const result = processEngineerTask(task);
+    const job = JSON.parse(process.argv[2] || '{}');
+    const result = processEngineerJob(job);
     console.log(JSON.stringify(result));
 }
 
-module.exports = processEngineerTask;
+module.exports = processEngineerJob;

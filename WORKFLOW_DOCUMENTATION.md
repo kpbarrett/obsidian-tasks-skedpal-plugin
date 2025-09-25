@@ -1,7 +1,7 @@
 # Updated Agentic Development Workflow
 
 ## Overview
-This workflow has been updated to use `PROJECT_REQUIREMENTS.md` as the single source of truth for all project requirements. The multi-agent system now automatically generates tasks from requirements and processes them through the specialized agent pipeline.
+This workflow has been updated to use `PROJECT_REQUIREMENTS.md` as the single source of truth for all project requirements. The multi-agent system now automatically generates jobs from requirements and processes them through the specialized agent pipeline.
 
 ## Workflow Steps
 
@@ -10,16 +10,16 @@ This workflow has been updated to use `PROJECT_REQUIREMENTS.md` as the single so
 - **Format**: Structured markdown with requirement IDs, descriptions, and priorities
 - **Maintenance**: Update this file to add, modify, or complete requirements
 
-### 2. Task Generation
-- **Automated**: Tasks are automatically generated from requirements
-- **Mapping**: Requirements are mapped to appropriate task types and agents
-- **Prioritization**: Tasks are prioritized based on requirement priority
+### 2. Job Generation
+- **Automated**: Jobs are automatically generated from requirements
+- **Mapping**: Requirements are mapped to appropriate job types and agents
+- **Prioritization**: Jobs are prioritized based on requirement priority
 
 ### 3. Agent Processing
 - **Developer**: Implements features and fixes bugs
 - **Test Author**: Creates and maintains test cases, test plans, and test documentation
 - **Tester**: Runs tests and validates implementations
-- **Engineer**: Analyzes results and creates corrective tasks
+- **Engineer**: Analyzes results and creates corrective jobs
 - **General**: Coordinates workflow and monitors progress
 
 ### 4. Progress Tracking
@@ -27,11 +27,11 @@ This workflow has been updated to use `PROJECT_REQUIREMENTS.md` as the single so
 - **Reporting**: Results are recorded in dated report directories
 - **Traceability**: Full trace from requirements to implementation
 
-## Developer Task Processing Workflow
+## Developer Job Processing Workflow
 
-### Step 1: Task Selection
-- Retrieve the lowest-lexicographically-ordered task from `ops/tasks/inbox`
-- Read and understand the task requirements
+### Step 1: Job Selection
+- Retrieve the lowest-lexicographically-ordered job from `ops/jobs/inbox`
+- Read and understand the job requirements
 
 ### Step 2: Implementation
 - Analyze current codebase and project structure
@@ -49,12 +49,12 @@ This workflow has been updated to use `PROJECT_REQUIREMENTS.md` as the single so
 - Create new tests for implemented functionality
 - Ensure all tests pass
 
-### Step 5: Task Completion
-- **Move task to done directory**: `mv ops/tasks/inbox/task-XXX.json ops/tasks/done/`
-- **Git commit with task ID**: Include task filename (without extension) in commit message
-- **Commit message format**: `task-XXX: Brief summary of work performed`
+### Step 5: Job Completion
+- **Move job to done directory**: `mv ops/jobs/inbox/job-XXX.json ops/jobs/done/`
+- **Git commit with job ID**: Include job filename (without extension) in commit message
+- **Commit message format**: `job-XXX: Brief summary of work performed`
 
-## Test Author Task Processing Workflow
+## Test Author Job Processing Workflow
 
 ### Step 1: Test Planning
 - Analyze requirements to identify test scenarios
@@ -78,10 +78,10 @@ This workflow has been updated to use `PROJECT_REQUIREMENTS.md` as the single so
 - Coordinate with Developers for testability requirements
 - Collaborate with Testers for test execution planning
 
-### Step 5: Task Completion
-- **Move task to done directory**: `mv ops/tasks/inbox/task-XXX.json ops/tasks/done/`
-- **Git commit with task ID**: Include task filename (without extension) in commit message
-- **Commit message format**: `task-XXX: Brief summary of test work performed`
+### Step 5: Job Completion
+- **Move job to done directory**: `mv ops/jobs/inbox/job-XXX.json ops/jobs/done/`
+- **Git commit with job ID**: Include job filename (without extension) in commit message
+- **Commit message format**: `job-XXX: Brief summary of test work performed`
 
 ## Role Interactions
 
@@ -97,7 +97,7 @@ This workflow has been updated to use `PROJECT_REQUIREMENTS.md` as the single so
 
 ### All Roles ↔ Engineer
 - Engineer analyzes results from all roles
-- Creates corrective tasks for issues identified
+- Creates corrective jobs for issues identified
 - Ensures overall system quality
 ## Final Steps
 

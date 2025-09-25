@@ -3,63 +3,63 @@
 const fs = require('fs');
 const path = require('path');
 
-function processTestAuthorTask(task) {
-    console.log('Test Author processing task:', task.title);
-    
-    // Test Author handles test creation tasks
-    if (task.type === 'create-tests') {
-        console.log('Creating tests for requirement:', task.requirement);
-        console.log('Feature description:', task.description);
-        
+function processTestAuthorJob(job) {
+    console.log('Test Author processing job:', job.title);
+
+    // Test Author handles test creation jobs
+    if (job.type === 'create-tests') {
+        console.log('Creating tests for requirement:', job.requirement);
+        console.log('Feature description:', job.description);
+
         // Test creation logic would go here
         // This would analyze the requirement and generate appropriate test cases
-        const testCases = generateTestCases(task.requirement, task.description);
-        
+        const testCases = generateTestCases(job.requirement, job.description);
+
         // Save generated tests
         const testsDir = path.join(process.cwd(), 'ops/reports/generated-tests');
         if (!fs.existsSync(testsDir)) {
             fs.mkdirSync(testsDir, { recursive: true });
         }
-        
-        const testFile = path.join(testsDir, `${task.id}-tests.json`);
+
+        const testFile = path.join(testsDir, `${job.id}-tests.json`);
         fs.writeFileSync(testFile, JSON.stringify({
-            taskId: task.id,
-            requirement: task.requirement,
+            jobId: job.id,
+            requirement: job.requirement,
             testCases: testCases,
             timestamp: new Date().toISOString()
         }, null, 2));
-        
-        // Create follow-up test execution task
-        const testTaskDir = path.join(process.cwd(), 'ops/tasks/inbox');
-        const testTask = {
+
+        // Create follow-up test execution job
+        const testJobDir = path.join(process.cwd(), 'ops/jobs/inbox');
+        const testJob = {
             id: `test-${Date.now()}`,
             type: 'run-test',
-            title: `Execute tests for: ${task.requirement}`,
-            test: task.id,
-            priority: task.priority || 'normal',
+            title: `Execute tests for: ${job.requirement}`,
+            test: job.id,
+            priority: job.priority || 'normal',
             timestamp: new Date().toISOString(),
             agent: 'tester'
         };
-        
-        const testTaskFile = path.join(testTaskDir, `${testTask.id}.json`);
-        fs.writeFileSync(testTaskFile, JSON.stringify(testTask, null, 2));
-        
-        return { 
-            success: true, 
-            message: `Tests created for requirement: ${task.requirement}`,
+
+        const testJobFile = path.join(testJobDir, `${testJob.id}.json`);
+        fs.writeFileSync(testJobFile, JSON.stringify(testJob, null, 2));
+
+        return {
+            success: true,
+            message: `Tests created for requirement: ${job.requirement}`,
             testCases: testCases.length,
-            followUpTask: testTask.id
+            followUpJob: testJob.id
         };
     }
-    
-    return { success: false, message: 'Unknown task type for Test Author' };
+
+    return { success: false, message: 'Unknown job type for Test Author' };
 }
 
 function generateTestCases(requirement, description) {
     // This is a placeholder for actual test generation logic
     // In a real implementation, this would analyze the requirement
     // and generate appropriate unit tests, integration tests, etc.
-    
+
     const testCases = [
         {
             type: 'unit',
@@ -80,15 +80,15 @@ function generateTestCases(requirement, description) {
             expected: 'Should handle edge cases gracefully'
         }
     ];
-    
+
     return testCases;
 }
 
 // Export for testing
 if (require.main === module) {
-    const task = JSON.parse(process.argv[2] || '{}');
-    const result = processTestAuthorTask(task);
+    const job = JSON.parse(process.argv[2] || '{}');
+    const result = processTestAuthorJob(job);
     console.log(JSON.stringify(result));
 }
 
-module.exports = processTestAuthorTask;
+module.exports = processTestAuthorJob;

@@ -4,14 +4,14 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-// Import the orchestrator for agent-based task processing
-const { processTaskWithAgent } = require('./agents/orchestrator');
+// Import the orchestrator for agent-based job processing
+const { processJobWithAgent } = require('./agents/orchestrator');
 
-function processNextTask() {
+function processNextJob() {
     const rootDir = process.cwd();
-    const inboxDir = path.join(rootDir, 'ops/tasks/inbox');
-    const doneDir = path.join(rootDir, 'ops/tasks/done');
-    const workingDir = path.join(rootDir, 'ops/tasks/working');
+    const inboxDir = path.join(rootDir, 'ops/jobs/inbox');
+    const doneDir = path.join(rootDir, 'ops/jobs/done');
+    const workingDir = path.join(rootDir, 'ops/jobs/working');
     const reportsBaseDir = path.join(rootDir, 'ops/reports');
 
     // Ensure directories exist
@@ -22,9 +22,9 @@ function processNextTask() {
     });
 
     // Get lexicographically highest .json file
-    let taskFiles = [];
+    let jobFiles = [];
     try {
-        taskFiles = fs.readdirSync(inboxDir)
+        jobFiles = fs.readdirSync(inboxDir)
             .filter(file => file.endsWith('.json'))
             .sort()
             .reverse();
@@ -33,25 +33,25 @@ function processNextTask() {
         return;
     }
 
-    if (taskFiles.length === 0) {
-        console.log('No tasks found in inbox');
+    if (jobFiles.length === 0) {
+        console.log('No jobs found in inbox');
         return;
     }
 
-    const taskFile = taskFiles[0];
-    const taskFilePath = path.join(inboxDir, taskFile);
+    const jobFile = jobFiles[0];
+    const jobFilePath = path.join(inboxDir, jobFile);
 
-    console.log(`Processing task: ${taskFile}`);
+    console.log(`Processing job: ${jobFile}`);
 
     try {
-        // Read task file
-        const taskContent = fs.readFileSync(taskFilePath, 'utf-8');
-        const task = JSON.parse(taskContent);
+        // Read job file
+        const jobContent = fs.readFileSync(jobFilePath, 'utf-8');
+        const job = JSON.parse(jobContent);
 
         // Handle required files
         const createdFiles = [];
-        if (task.requires && Array.isArray(task.requires)) {
-            for (const requiredFile of task.requires) {
+        if (job.requires && Array.isArray(job.requires)) {
+            for (const requiredFile of job.requires) {
                 const fullPath = path.join(rootDir, requiredFile);
                 if (!fs.existsSync(fullPath)) {
                     console.log(`Creating stub for: ${requiredFile}`);
@@ -76,19 +76,19 @@ function processNextTask() {
             }
         }
 
-        // Process task with appropriate agent
+        // Process job with appropriate agent
         let agentResult = {};
         let exitCode = 0;
 
         try {
-            agentResult = processTaskWithAgent(task);
+            agentResult = processJobWithAgent(job);
             console.log('Agent result:', agentResult);
 
             if (!agentResult.success) {
                 exitCode = 1;
             }
         } catch (error) {
-            console.error('Error processing task with agent:', error.message);
+            console.error('Error processing job with agent:', error.message);
             exitCode = 1;
             agentResult = {
                 success: false,
@@ -105,9 +105,9 @@ function processNextTask() {
         }
 
         const reportEntry = {
-            task: taskFile,
-            taskType: task.type,
-            agent: task.agent || 'auto-detected',
+            job: jobFile,
+            jobType: job.type,
+            agent: job.agent || 'auto-detected',
             created: createdFiles,
             exitCode: exitCode,
             agentResult: agentResult,
@@ -117,23 +117,23 @@ function processNextTask() {
         const reportFile = path.join(reportDir, 'summary.jsonl');
         fs.appendFileSync(reportFile, JSON.stringify(reportEntry) + '\n');
 
-        // Move task file based on exit code
+        // Move job file based on exit code
         const targetDir = exitCode === 0 ? doneDir : workingDir;
-        const targetPath = path.join(targetDir, taskFile);
-        fs.renameSync(taskFilePath, targetPath);
+        const targetPath = path.join(targetDir, jobFile);
+        fs.renameSync(jobFilePath, targetPath);
 
-        console.log(`Task ${taskFile} processed successfully`);
+        console.log(`Job ${jobFile} processed successfully`);
         console.log(`Exit code: ${exitCode}`);
         console.log(`Moved to: ${targetDir}`);
 
     } catch (error) {
-        console.error('Error processing task:', error.message);
+        console.error('Error processing job:', error.message);
     }
 }
 
 // Run the function if this script is executed directly
 if (require.main === module) {
-    processNextTask();
+    processNextJob();
 }
 
-module.exports = processNextTask;
+module.exports = processNextJob;
