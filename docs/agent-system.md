@@ -1,1 +1,156 @@
-# Agent-Based Task Processing System\n\n## Overview\n\nThe agent system implements a sophisticated workflow for processing tasks using specialized agents. Each agent has specific responsibilities and handles different types of tasks.\n\n## Architecture\n\n### Core Components\n\n1. **Task Inbox** (`ops/tasks/inbox/`)\n   - JSON files containing task definitions\n   - Tasks are processed in lexicographical order\n\n2. **Agent Orchestrator** (`scripts/agents/orchestrator.js`)\n   - Routes tasks to appropriate agents\n   - Supports both explicit and automatic agent assignment\n\n3. **Specialized Agents**\n   - Developer: Feature implementation and bug fixes\n   - Tester: Test execution and result recording\n   - Engineer: Test result analysis and task creation\n   - General: Miscellaneous coordination tasks\n\n4. **Reporting System** (`ops/reports/`)\n   - Dated directories for organized reporting\n   - JSONL format for easy parsing and analysis\n\n## Task Lifecycle\n\n1. **Creation**: Task JSON files are placed in the inbox\n2. **Routing**: Orchestrator determines appropriate agent\n3. **Processing**: Agent executes task-specific logic\n4. **Reporting**: Results are recorded with timestamps\n5. **Completion**: Tasks are moved to done/working directories\n\n## Task Format\n\n```json\n{\n  \"id\": \"unique-task-identifier\",\n  \"type\": \"task-type\",\n  \"title\": \"Descriptive title\",\n  \"agent\": \"optional-agent-name\",\n  \"priority\": \"low|normal|high|urgent\",\n  \"requires\": [\"path/to/required/file\"],\n  \"notes\": \"Additional context\",\n  \"timestamp\": \"ISO-8601-timestamp\"\n}\n```\n\n## Supported Task Types\n\n### Developer Tasks\n- `implement-feature`: Create new functionality\n- `fix-bug`: Resolve identified issues\n\n### Tester Tasks\n- `run-test`: Execute test suites\n\n### Engineer Tasks\n- `analyze-test-results`: Process test outcomes and create follow-up tasks\n\n### General Tasks\n- `coordinate-workflow`: Manage task dependencies\n- `monitor-progress`: Track system performance\n\n## Agent Responsibilities\n\n### Developer Agent\n- Implements features based on specifications\n- Fixes bugs identified in testing\n- Creates necessary code and documentation\n- Ensures code quality and standards\n\n### Tester Agent\n- Executes automated test suites\n- Records test results and metrics\n- Identifies test failures and issues\n- Generates test reports\n\n### Engineer Agent\n- Analyzes test results for patterns\n- Creates bug fix tasks for failed tests\n- Generates follow-up testing tasks\n- Monitors system health and performance\n\n### General Agent\n- Coordinates workflow between agents\n- Monitors task progress and dependencies\n- Handles system-level coordination tasks\n- Acts as default for unknown task types\n\n## Usage Examples\n\n### Creating a Development Task\n```json\n{\n  \"id\": \"feat-001\",\n  \"type\": \"implement-feature\",\n  \"title\": \"Add user authentication\",\n  \"feature\": \"user-auth\",\n  \"priority\": \"high\",\n  \"requires\": [\"src/auth.js\"],\n  \"notes\": \"Implement JWT-based authentication\"\n}\n```\n\n### Creating a Testing Task\n```json\n{\n  \"id\": \"test-001\",\n  \"type\": \"run-test\",\n  \"title\": \"Run integration tests\",\n  \"test\": \"integration\",\n  \"priority\": \"normal\",\n  \"agent\": \"tester\"\n}\n```\n\n## Processing Workflow\n\n1. Place task file in `ops/tasks/inbox/`\n2. Run `node scripts/process_next_task.js`\n3. Monitor progress in `ops/reports/[date]/summary.jsonl`\n4. Check completed tasks in `ops/tasks/done/`\n\n## Error Handling\n\n- Failed tasks are moved to `ops/tasks/working/`\n- Detailed error information is recorded in reports\n- System continues processing other tasks\n- Manual intervention may be required for failed tasks\n\n## Extending the System\n\n### Adding New Agents\n1. Create agent file in `scripts/agents/`\n2. Implement agent logic with standard interface\n3. Update orchestrator to include new agent\n4. Add agent-specific task types\n\n### Adding New Task Types\n1. Define task type in agent logic\n2. Update orchestrator routing logic\n3. Create appropriate test cases\n4. Update documentation\n\n## Best Practices\n\n- Use descriptive task titles and IDs\n- Include all necessary dependencies in `requires`\n- Set appropriate priority levels\n- Provide clear context in `notes` field\n- Monitor report files for system health\n- Regularly review and clean up completed tasks"
+# Agent-Based Task Processing System
+
+## Overview
+
+The agent system implements a sophisticated workflow for processing tasks using specialized agents. Each agent has specific responsibilities and handles different types of tasks.
+
+## Architecture
+
+### Core Components
+
+1. **Task Inbox** (`ops/tasks/inbox/`)
+   - JSON files containing task definitions
+   - Tasks are processed in lexicographical order
+
+2. **Agent Orchestrator** (`scripts/agents/orchestrator.js`)
+   - Routes tasks to appropriate agents
+   - Supports both explicit and automatic agent assignment
+
+3. **Specialized Agents**
+   - Developer: Feature implementation and bug fixes
+   - Tester: Test execution and result recording
+   - Engineer: Test result analysis and task creation
+   - General: Miscellaneous coordination tasks
+
+4. **Reporting System** (`ops/reports/`)
+   - Dated directories for organized reporting
+   - JSONL format for easy parsing and analysis
+
+## Task Lifecycle
+
+1. **Creation**: Task JSON files are placed in the inbox
+2. **Routing**: Orchestrator determines appropriate agent
+3. **Processing**: Agent executes task-specific logic
+4. **Reporting**: Results are recorded with timestamps
+5. **Completion**: Tasks are moved to done/working directories
+
+## Task Format
+
+```json
+{
+  "id": "unique-task-identifier",
+  "type": "task-type",
+  "title": "Descriptive title",
+  "agent": "optional-agent-name",
+  "priority": "low|normal|high|urgent",
+  "requires": ["path/to/required/file"],
+  "notes": "Additional context",
+  "timestamp": "ISO-8601-timestamp"
+}
+```
+
+## Supported Task Types
+
+### Developer Tasks
+- `implement-feature`: Create new functionality
+- `fix-bug`: Resolve identified issues
+
+### Tester Tasks
+- `run-test`: Execute test suites
+
+### Engineer Tasks
+- `analyze-test-results`: Process test outcomes and create follow-up tasks
+
+### General Tasks
+- `coordinate-workflow`: Manage task dependencies
+- `monitor-progress`: Track system performance
+
+## Agent Responsibilities
+
+### Developer Agent
+- Implements features based on specifications
+- Fixes bugs identified in testing
+- Creates necessary code and documentation
+- Ensures code quality and standards
+
+### Tester Agent
+- Executes automated test suites
+- Records test results and metrics
+- Identifies test failures and issues
+- Generates test reports
+
+### Engineer Agent
+- Analyzes test results for patterns
+- Creates bug fix tasks for failed tests
+- Generates follow-up testing tasks
+- Monitors system health and performance
+
+### General Agent
+- Coordinates workflow between agents
+- Monitors task progress and dependencies
+- Handles system-level coordination tasks
+- Acts as default for unknown task types
+
+## Usage Examples
+
+### Creating a Development Task
+```json
+{
+  "id": "feat-001",
+  "type": "implement-feature",
+  "title": "Add user authentication",
+  "feature": "user-auth",
+  "priority": "high",
+  "requires": ["src/auth.js"],
+  "notes": "Implement JWT-based authentication"
+}
+```
+
+### Creating a Testing Task
+```json
+{
+  "id": "test-001",
+  "type": "run-test",
+  "title": "Run integration tests",
+  "test": "integration",
+  "priority": "normal",
+  "agent": "tester"
+}
+```
+
+## Processing Workflow
+
+1. Place task file in `ops/tasks/inbox/`
+2. Run `node scripts/process_next_task.js`
+3. Monitor progress in `ops/reports/[date]/summary.jsonl`
+4. Check completed tasks in `ops/tasks/done/`
+
+## Error Handling
+
+- Failed tasks are moved to `ops/tasks/working/`
+- Detailed error information is recorded in reports
+- System continues processing other tasks
+- Manual intervention may be required for failed tasks
+
+## Extending the System
+
+### Adding New Agents
+1. Create agent file in `scripts/agents/`
+2. Implement agent logic with standard interface
+3. Update orchestrator to include new agent
+4. Add agent-specific task types
+
+### Adding New Task Types
+1. Define task type in agent logic
+2. Update orchestrator routing logic
+3. Create appropriate test cases
+4. Update documentation
+
+## Best Practices
+
+- Use descriptive task titles and IDs
+- Include all necessary dependencies in `requires`
+- Set appropriate priority levels
+- Provide clear context in `notes` field
+- Monitor report files for system health
+- Regularly review and clean up completed tasks"

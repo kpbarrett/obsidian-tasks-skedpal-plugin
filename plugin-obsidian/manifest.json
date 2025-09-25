@@ -1,0 +1,2 @@
+{
+  \"id\": \"obsidian-tasks-skedpal-plugin\",\n  \"name\": \"Obsidian Tasks - SkedPal Sync\",\n  \"version\": \"1.0.0\",\n  \"minAppVersion\": \"0.15.0\",\n  \"description\": \"A plugin that connects Obsidian Tasks to SkedPal for bidirectional synchronization\",\n  \"author\": \"Your Name\",\n  \"authorUrl\": \"https://github.com/yourusername/obsidian-tasks-skedpal-plugin\",\n  \"fundingUrl\": \"https://github.com/sponsors/yourusername\",\n  \"isDesktopOnly\": false\n}"
