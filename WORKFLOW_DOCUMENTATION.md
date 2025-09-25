@@ -26,69 +26,31 @@ This workflow has been updated to use `PROJECT_REQUIREMENTS.md` as the single so
 - **Reporting**: Results are recorded in dated report directories
 - **Traceability**: Full trace from requirements to implementation
 
-## Usage
+## Developer Task Processing Workflow
 
-### Single Task Processing (Original)
-```bash
-node scripts/agents/orchestrator.js '{"type":"implement-feature","title":"Test task"}'
-```
+### Step 1: Task Selection
+- Retrieve the lowest-lexicographically-ordered task from `ops/tasks/inbox`
+- Read and understand the task requirements
 
-### Requirements-Driven Processing (New)
-```bash
-node scripts/agents/orchestrator.js --requirements
-```
+### Step 2: Implementation
+- Analyze current codebase and project structure
+- Implement required features or fixes
+- Follow TypeScript/JavaScript best practices
+- Ensure proper error handling and validation
 
-### Manual Task Creation
-```bash
-# Create task file in inbox
-echo '{"id":"task-001","type":"implement-feature","title":"Manual task"}' > ops/tasks/inbox/manual-task.json
-```
+### Step 3: Build Verification
+- Run TypeScript compilation: `npx tsc --noEmit --skipLibCheck`
+- Execute build process: `npm run build`
+- Verify no compilation errors or warnings
 
-## File Structure
-```
-PROJECT_REQUIREMENTS.md          # Single source of truth for requirements
-scripts/
-  requirements/
-    parser.js                    # Parses requirements from markdown
-    task-generator.js           # Generates tasks from requirements
-  agents/
-    orchestrator.js             # Enhanced with requirements integration
-    developer.js                # Feature implementation
-    tester.js                   # Test execution
-    engineer.js                 # Results analysis
-    general.js                  # Workflow coordination
-ops/
-  tasks/
-    inbox/                      # Task input directory
-    working/                    # Tasks in progress
-    done/                       # Completed tasks
-  reports/                      # Dated progress reports
-```
+### Step 4: Testing (When Applicable)
+- Run existing test suites
+- Create new tests for implemented functionality
+- Ensure all tests pass
 
-## Key Changes
+### Step 5: Task Completion
+- **Move task to done directory**: `mv ops/tasks/inbox/task-XXX.json ops/tasks/done/`
+- **Git commit with task ID**: Include task filename (without extension) in commit message
+- **Commit message format**: `task-XXX: Brief summary of work performed`
 
-1. **Requirements-Driven**: Tasks are now generated from requirements rather than created manually
-2. **Automated Prioritization**: Task priority is determined by requirement priority
-3. **Status Synchronization**: Requirement status is automatically updated as tasks complete
-4. **Enhanced Traceability**: Full audit trail from requirements to implementation
-
-## Benefits
-- **Reduced Manual Work**: No need to manually create tasks
-- **Better Alignment**: All work directly ties back to requirements
-- **Improved Visibility**: Clear progress tracking against requirements
-- **Automated Documentation**: Requirements document stays current with implementation
-
-## Adding New Requirements
-
-1. Edit `PROJECT_REQUIREMENTS.md`
-2. Add requirements with unique IDs (REQ-XXX)
-3. Set appropriate priority and status
-4. Run the requirements pipeline to generate tasks
-
-## Example Requirement Format
-```markdown
-- **REQ-XXX**: Description of the requirement
-```
-
-## Priority Matrix Updates
-The priority matrix in the requirements document is automatically updated as tasks are processed, providing real-time visibility into project progress against requirements.
+### Final Steps
