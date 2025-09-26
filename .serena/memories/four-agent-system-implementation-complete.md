@@ -30,17 +30,17 @@ scripts/agents/
 └── general.js         # Coordination and monitoring tasks
 
 ops/
-├── tasks/
-│   ├── inbox/         # New tasks waiting processing (JSON files)
-│   ├── working/       # Tasks being retried after failure
-│   └── done/          # Successfully completed tasks
+├── jobs/
+│   ├── inbox/         # New jobs waiting processing (JSON files)
+│   ├── working/       # Jobs being retried after failure
+│   └── done/          # Successfully completed jobs
 └── reports/
     └── YYYY-MM-DD/    # Dated report directories
         └── summary.jsonl  # Task execution logs in JSONL format
 ```
 
 ### Task Processing Workflow
-1. **Task Creation**: JSON task files placed in `ops/tasks/inbox/`
+1. **Task Creation**: JSON task files placed in `ops/jobs/inbox/`
 2. **Task Selection**: `scripts/process_next_task.js` processes tasks in lexicographical order
 3. **Agent Routing**: Orchestrator determines appropriate agent based on task type
 4. **Task Execution**: Agent-specific logic executed with proper error handling
@@ -90,7 +90,7 @@ make agent-process     # Process next task using agent system (alias for process
 - **Monitoring**: Regularly check report files for system health and progress
 
 ### Error Handling Strategy
-- Failed tasks remain in `ops/tasks/working/` for manual intervention
+- Failed tasks remain in `ops/jobs/working/` for manual intervention
 - System continues processing other tasks to maintain workflow
 - Detailed error information recorded in reports for debugging
 - Graceful degradation ensures system reliability

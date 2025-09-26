@@ -22,10 +22,10 @@ scripts/agents/
 └── general.js         # Coordination and monitoring
 
 ops/
-├── tasks/
-│   ├── inbox/         # New tasks waiting processing
-│   ├── working/       # Tasks being retried after failure
-│   └── done/          # Successfully completed tasks
+├── jobs/
+│   ├── inbox/         # New jobs waiting processing
+│   ├── working/       # Jobs being retried after failure
+│   └── done/          # Successfully completed jobs
 └── reports/
     └── YYYY-MM-DD/    # Dated report directories
         └── summary.jsonl  # Task execution logs
@@ -46,11 +46,11 @@ ops/
 ```
 
 ### Processing Workflow
-1. Tasks placed in `ops/tasks/inbox/` as JSON files
+1. Tasks placed in `ops/jobs/inbox/` as JSON files
 2. Orchestrator routes to appropriate agent based on task type
 3. Agent executes task-specific logic
 4. Results recorded in dated report directories
-5. Successful tasks moved to `ops/tasks/done/`, failed to `ops/tasks/working/`
+5. Successful tasks moved to `ops/jobs/done/`, failed to `ops/jobs/working/`
 
 ### Documentation Created
 - `README.md` - Updated with agent system overview

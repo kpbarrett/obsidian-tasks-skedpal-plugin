@@ -4,7 +4,7 @@
 2025-09-23
 
 ## Summary
-Automated task processing system that reads JSON task files from `ops/tasks/inbox/`, handles file dependencies, runs tests, and reports results.
+Automated task processing system that reads JSON task files from `ops/jobs/inbox/`, handles file dependencies, runs tests, and reports results.
 
 ## Key Files
 - `scripts/process_next_task.js` - Main implementation
@@ -20,7 +20,7 @@ node scripts/process_next_task.js
 ```
 
 ## Functionality
-1. **Task Selection**: Reads lexicographically highest `.json` file from `ops/tasks/inbox/`
+1. **Task Selection**: Reads lexicographically highest `.json` file from `ops/jobs/inbox/`
 2. **Dependency Handling**: Creates minimal stubs for required files if missing
 3. **Test Execution**: Runs `make test` with 60-second timeout
 4. **Reporting**: Logs results to dated JSONL files in `ops/reports/`

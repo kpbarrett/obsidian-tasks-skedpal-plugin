@@ -34,7 +34,7 @@ This memory documents the implementation of a requirements-driven development pi
 ### Processing Modes
 1. **Requirements-Driven**: `node scripts/agents/orchestrator.js --requirements`
 2. **Single Task**: `node scripts/agents/orchestrator.js '{\"type\":\"implement-feature\"}'`
-3. **Manual**: Create JSON files in `ops/tasks/inbox/`
+3. **Manual**: Create JSON files in `ops/jobs/inbox/`
 
 ### Agent Specialization
 - **Developer**: Feature implementation and bug fixes
@@ -99,7 +99,7 @@ WORKFLOW_DOCUMENTATION.md
 ### Monitoring Progress
 - Check priority matrix in requirements document
 - Review dated reports in `ops/reports/`
-- Track task status in `ops/tasks/` directories
+- Track task status in `ops/jobs/` directories
 
 ## Related Conversations
 - Initial multi-agent system implementation

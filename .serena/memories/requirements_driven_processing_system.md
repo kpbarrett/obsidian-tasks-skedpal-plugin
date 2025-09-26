@@ -24,12 +24,12 @@ This project implements a sophisticated multi-agent development system that auto
 ### Orchestrator (`scripts/agents/orchestrator.js`)
 - Routes tasks to appropriate agents based on type
 - Supports both single-task and requirements-driven processing
-- Creates task files in `ops/tasks/inbox` for proper workflow processing
+- Creates task files in `ops/jobs/inbox` for proper workflow processing
 
 ## Workflow
 1. Requirements are parsed from `PROJECT_REQUIREMENTS.md`
 2. Tasks are generated for planned requirements
-3. Task files are created in `ops/tasks/inbox`
+3. Task files are created in `ops/jobs/inbox`
 4. Tasks are processed by appropriate agents via `scripts/process_next_task.js`
 5. Results are recorded in dated report directories
 

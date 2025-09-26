@@ -30,11 +30,11 @@ This project now implements a sophisticated agent-based task processing system w
 
 Tasks are processed through the following workflow:
 
-1. **Inbox**: Tasks are placed in `ops/tasks/inbox/` as JSON files
+1. **Inbox**: Tasks are placed in `ops/jobs/inbox/` as JSON files
 2. **Processing**: The orchestrator routes tasks to appropriate agents
 3. **Execution**: Agents process tasks based on their specialization
 4. **Reporting**: Results are recorded in dated report directories
-5. **Completion**: Successful tasks are moved to `ops/tasks/done/`, failed tasks to `ops/tasks/working/`
+5. **Completion**: Successful tasks are moved to `ops/jobs/done/`, failed tasks to `ops/jobs/working/`
 
 ### Task Format
 
