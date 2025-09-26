@@ -1,0 +1,12 @@
+{
+  "id": "task-1758752250569-REQ-001-FIX-005",
+  "type": "fix-bug",
+  "title": "Fix: TaskSyncPlugin test environment setup",
+  "description": "Fix test environment setup for TaskSyncPlugin integration tests. The TaskSyncPlugin class is not defined in the test environment, causing ReferenceError. Either mock the plugin class or skip this test in the current setup.",
+  "requirement": "REQ-001",
+  "priority": "low",
+  "agent": "developer",
+  "status": "planned",
+  "testReference": "REQ-001-test-report.md - Test: 'should initialize plugin with Obsidian integration'",
+  "createdAt": "2025-09-26T00:00:00.000Z"
+}

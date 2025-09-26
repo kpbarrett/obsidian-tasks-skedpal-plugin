@@ -1,0 +1,12 @@
+{
+  "id": "task-1758752250569-REQ-001-FIX-001",
+  "type": "fix-bug",
+  "title": "Fix: Priority extraction regex for Obsidian task syntax",
+  "description": "Fix the priority extraction regex pattern to handle cases without trailing spaces. Current regex \\s\\((.)\\)\\s requires spaces around priority, but test data doesn't have trailing spaces. Update to \\s\\((.)\\) to handle edge cases.",
+  "requirement": "REQ-001",
+  "priority": "high",
+  "agent": "developer",
+  "status": "planned",
+  "testReference": "REQ-001-test-report.md - Test: 'should parse Obsidian task syntax correctly'",
+  "createdAt": "2025-09-26T00:00:00.000Z"
+}
