@@ -1,71 +1,43 @@
-import { test, expect } from '@playwright/test';
-import { TaskManager, ObsidianTask } from '../plugin-obsidian/src/task-manager';
-import { TaskSyncSettings, DEFAULT_SETTINGS } from '../plugin-obsidian/src/settings';
-import TaskSyncPlugin from '../plugin-obsidian/src/main';
+import { test, expect } from './setup';
 
-// Mock Obsidian App and Vault for testing
-class MockTFile {
-    constructor(public path: string, public name: string, public extension: string) {}
-}
-
-class MockVault {
-    private files: MockTFile[] = [];
-    private fileContents: Map<string, string> = new Map();
-
-    getMarkdownFiles(): MockTFile[] {
-        return this.files.filter(file => file.extension === 'md');
-    }
-
-    addFile(path: string, name: string, content: string) {
-        const file = new MockTFile(path, name, 'md');
-        this.files.push(file);
-        this.fileContents.set(path, content);
-    }
-
-    async read(file: MockTFile): Promise<string> {
-        return this.fileContents.get(file.path) || '';
-    }
-
-    async modify(file: MockTFile, content: string): Promise<void> {
-        this.fileContents.set(file.path, content);
-    }
-}
-
-class MockApp {
-    vault: MockVault;
-
-    constructor() {
-        this.vault = new MockVault();
-    }
-}
+// Import Obsidian API types for type safety
+import type { App, TFile, Notice } from 'obsidian';
 
 // Test suite for REQ-001: Plugin must integrate with Obsidian's task management system
 test.describe('REQ-001: Obsidian Integration Tests', () => {
-    let mockApp: MockApp;
-    let taskManager: TaskManager;
-    let settings: TaskSyncSettings;
+    let taskManager: any;
+    let settings: any;
+    let TaskManager: any;
+    let DEFAULT_SETTINGS: any;
 
-    beforeEach(() => {
-        mockApp = new MockApp();
+    test.beforeEach(async ({ mockApp }) => {
+        // Dynamically import the plugin code after mocks are set up
+        const taskManagerModule = await import('../plugin-obsidian/src/task-manager');
+        const settingsModule = await import('../plugin-obsidian/src/settings');
+        
+        TaskManager = taskManagerModule.TaskManager;
+        DEFAULT_SETTINGS = settingsModule.DEFAULT_SETTINGS;
+        
         settings = { ...DEFAULT_SETTINGS };
-        taskManager = new TaskManager(mockApp as any, settings);
+        // Cast mockApp to Obsidian's App type for compatibility
+        taskManager = new TaskManager(mockApp as unknown as App, settings);
     });
 
-    test('should detect task files based on patterns', async () => {
+    test('should detect task files based on patterns', async ({ mockApp }) => {
         // Setup test files
         mockApp.vault.addFile('tasks/daily.md', 'daily.md', '- [ ] Task 1\\n- [x] Task 2');
         mockApp.vault.addFile('notes/meeting.md', 'meeting.md', '# Meeting Notes');
         mockApp.vault.addFile('project-tasks.md', 'project-tasks.md', '- [ ] Project task');
 
         const tasks = await taskManager.collectTasks();
-        
+
         // Should find tasks from task files
         expect(tasks.length).toBeGreaterThan(0);
         expect(tasks.some(task => task.filePath.includes('tasks/'))).toBeTruthy();
         expect(tasks.some(task => task.filePath.includes('project-tasks'))).toBeTruthy();
     });
 
-    test('should parse Obsidian task syntax correctly', async () => {
+    test('should parse Obsidian task syntax correctly', async ({ mockApp }) => {
         const testContent = `# Daily Tasks
 
 - [ ] Incomplete task with priority (A)
@@ -76,11 +48,11 @@ test.describe('REQ-001: Obsidian Integration Tests', () => {
 * [ ] Task with asterisk`;
 
         mockApp.vault.addFile('test.md', 'test.md', testContent);
-        
+
         const tasks = await taskManager.collectTasks();
-        
+
         expect(tasks).toHaveLength(4);
-        
+
         // Test incomplete task
         const incompleteTask = tasks.find(t => t.description.includes('Incomplete task'));
         expect(incompleteTask).toBeDefined();
@@ -104,12 +76,12 @@ test.describe('REQ-001: Obsidian Integration Tests', () => {
         expect(taggedTask?.tags).toContain('urgent');
     });
 
-    test('should respect includeCompletedTasks setting', async () => {
+    test('should respect includeCompletedTasks setting', async ({ mockApp }) => {
         const testContent = `- [ ] Incomplete task
 - [x] Completed task`;
 
         mockApp.vault.addFile('test.md', 'test.md', testContent);
-        
+
         // Test with includeCompletedTasks = false
         settings.includeCompletedTasks = false;
         let tasks = await taskManager.collectTasks();
@@ -123,40 +95,40 @@ test.describe('REQ-001: Obsidian Integration Tests', () => {
         expect(tasks.some(t => t.completed)).toBeTruthy();
     });
 
-    test('should generate unique task IDs', async () => {
+    test('should generate unique task IDs', async ({ mockApp }) => {
         mockApp.vault.addFile('test.md', 'test.md', '- [ ] Task 1\\n- [ ] Task 2');
-        
+
         const tasks = await taskManager.collectTasks();
-        
+
         expect(tasks).toHaveLength(2);
         expect(tasks[0].id).toBe('test.md:2');
         expect(tasks[1].id).toBe('test.md:3');
         expect(tasks[0].id).not.toBe(tasks[1].id);
     });
 
-    test('should update task status in file', async () => {
+    test('should update task status in file', async ({ mockApp }) => {
         const originalContent = '- [ ] Original task';
         mockApp.vault.addFile('test.md', 'test.md', originalContent);
-        
+
         const tasks = await taskManager.collectTasks();
         const task = tasks[0];
 
         // Update task to completed
         await taskManager.updateTask(task, { completed: true });
-        
+
         const updatedContent = await mockApp.vault.read(mockApp.vault.getMarkdownFiles()[0]);
         expect(updatedContent).toContain('- [x] Original task');
     });
 
-    test('should handle task file pattern matching', async () => {
+    test('should handle task file pattern matching', async ({ mockApp }) => {
         settings.taskFilePatterns = ['**/tasks/**', '**/*.task.md'];
-        
+
         mockApp.vault.addFile('tasks/daily.md', 'daily.md', '- [ ] Task 1');
         mockApp.vault.addFile('notes/meeting.task.md', 'meeting.task.md', '- [ ] Task 2');
         mockApp.vault.addFile('random.md', 'random.md', '- [ ] Task 3');
 
         const tasks = await taskManager.collectTasks();
-        
+
         // Should only process files matching patterns
         expect(tasks).toHaveLength(2);
         expect(tasks.some(t => t.filePath.includes('tasks/'))).toBeTruthy();
@@ -164,14 +136,14 @@ test.describe('REQ-001: Obsidian Integration Tests', () => {
         expect(tasks.some(t => t.filePath.includes('random.md'))).toBeFalsy();
     });
 
-    test('should extract task metadata correctly', async () => {
+    test('should extract task metadata correctly', async ({ mockApp }) => {
         const testContent = `- [ ] High priority task (A) with due date 📅 2024-01-15 and tags #work #important
 - [x] Completed task with priority (B)`;
 
         mockApp.vault.addFile('test.md', 'test.md', testContent);
-        
+
         const tasks = await taskManager.collectTasks();
-        
+
         // Test first task metadata
         const task1 = tasks.find(t => t.description.includes('High priority'));
         expect(task1?.priority).toBe('A');
@@ -186,14 +158,14 @@ test.describe('REQ-001: Obsidian Integration Tests', () => {
         expect(task2?.completed).toBe(true);
     });
 
-    test('should clean task descriptions properly', async () => {
+    test('should clean task descriptions properly', async ({ mockApp }) => {
         const testContent = `- [ ] Task with (A) priority and 📅 2024-01-15 date and #tags`;
 
         mockApp.vault.addFile('test.md', 'test.md', testContent);
-        
+
         const tasks = await taskManager.collectTasks();
         const task = tasks[0];
-        
+
         // Description should be cleaned of metadata markers
         expect(task.description).toBe('Task with priority and date and');
         expect(task.description).not.toContain('(A)');
@@ -201,7 +173,7 @@ test.describe('REQ-001: Obsidian Integration Tests', () => {
         // Tags are extracted separately but removed from description
     });
 
-    test('should handle multiple task formats', async () => {
+    test('should handle multiple task formats', async ({ mockApp }) => {
         const testContent = `## Different task formats
 - [ ] Standard dash format
 * [ ] Asterisk format
@@ -210,20 +182,20 @@ test.describe('REQ-001: Obsidian Integration Tests', () => {
 - [ ] Task with emoji status ✅`;
 
         mockApp.vault.addFile('test.md', 'test.md', testContent);
-        
+
         const tasks = await taskManager.collectTasks();
-        
+
         // Should parse all valid task formats
         expect(tasks).toHaveLength(5);
         expect(tasks.filter(t => t.completed)).toHaveLength(2);
     });
 
-    test('should handle empty files and files without tasks', async () => {
+    test('should handle empty files and files without tasks', async ({ mockApp }) => {
         mockApp.vault.addFile('empty.md', 'empty.md', '');
         mockApp.vault.addFile('no-tasks.md', 'no-tasks.md', '# Header\\nRegular text');
-        
+
         const tasks = await taskManager.collectTasks();
-        
+
         expect(tasks).toHaveLength(0);
     });
 });
@@ -233,7 +205,7 @@ test.describe('TaskSyncPlugin Integration Tests', () => {
     test('should initialize plugin with Obsidian integration', async () => {
         // This would require more complex mocking of Obsidian's plugin system
         // For now, we'll test the basic structure
-        
+
         expect(TaskSyncPlugin).toBeDefined();
         expect(TaskSyncPlugin.prototype.onload).toBeDefined();
         expect(TaskSyncPlugin.prototype.onunload).toBeDefined();

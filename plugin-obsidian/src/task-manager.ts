@@ -1,4 +1,30 @@
-import { App, TFile, Notice, normalizePath } from 'obsidian';
+// Conditional import for Obsidian API - supports both real and mock environments
+let App: any, TFile: any, Notice: any, normalizePath: any;
+
+try {
+    // Try to import the real Obsidian API
+    const obsidian = require('obsidian');
+    App = obsidian.App;
+    TFile = obsidian.TFile;
+    Notice = obsidian.Notice;
+    normalizePath = obsidian.normalizePath;
+} catch (error) {
+    // Fall back to mock API for testing
+    if (typeof global !== 'undefined' && (global as any).obsidian) {
+        const obsidian = (global as any).obsidian;
+        App = obsidian.App;
+        TFile = obsidian.TFile;
+        Notice = obsidian.Notice;
+        normalizePath = obsidian.normalizePath;
+    } else {
+        // Create minimal mock types for development
+        type App = any;
+        type TFile = any;
+        type Notice = any;
+        normalizePath = (path: string) => path.replace(/\\/g, '/').replace(/\/+/g, '/').replace(/\/$/, '');
+    }
+}
+
 import { TaskSyncSettings } from './settings';
 
 export interface ObsidianTask {

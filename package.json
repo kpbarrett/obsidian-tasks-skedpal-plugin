@@ -1,1 +1,21 @@
-{}
+{
+  "name": "obsidian-tasks-skedpal-plugin",
+  "version": "0.0.1",
+  "description": "A plugin that connects Obsidian Tasks to SkedPal.",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kbarrett/obsidian-tasks-skedpal-plugin.git"
+  },
+  "keywords": ["Obsidian", "SkedPal", "plugin", "tasks"],
+  "author": "Kevin Barrett <kevin.barrett@yahoo.com>",
+  "license": "GPLv3",
+  "bugs": {
+    "url": "https://github.com/kbarrett/obsidian-tasks-skedpal-plugin/issues"
+  },
+  "homepage": "https://github.com/kbarrett/obsidian-tasks-skedpal-plugin#readme",
+  "dependencies": {
+  },
+  "devDependencies": {
+  }
+}

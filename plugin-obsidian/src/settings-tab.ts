@@ -1,4 +1,27 @@
-import { App, PluginSettingTab, Setting } from 'obsidian';
+// Conditional import for Obsidian API - supports both real and mock environments
+let App: any, PluginSettingTab: any, Setting: any;
+
+try {
+    // Try to import the real Obsidian API
+    const obsidian = require('obsidian');
+    App = obsidian.App;
+    PluginSettingTab = obsidian.PluginSettingTab;
+    Setting = obsidian.Setting;
+} catch (error) {
+    // Fall back to mock API for testing
+    if (typeof global !== 'undefined' && (global as any).obsidian) {
+        const obsidian = (global as any).obsidian;
+        App = obsidian.App;
+        PluginSettingTab = obsidian.PluginSettingTab;
+        Setting = obsidian.Setting;
+    } else {
+        // Create minimal mock types for development
+        type App = any;
+        type PluginSettingTab = any;
+        type Setting = any;
+    }
+}
+
 import TaskSyncPlugin from './main';
 import { TaskSyncSettings } from './settings';
 

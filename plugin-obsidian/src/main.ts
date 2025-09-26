@@ -1,4 +1,30 @@
-import { Plugin, App, TFile, Notice } from 'obsidian';
+// Conditional import for Obsidian API - supports both real and mock environments
+let Plugin: any, App: any, TFile: any, Notice: any;
+
+try {
+    // Try to import the real Obsidian API
+    const obsidian = require('obsidian');
+    Plugin = obsidian.Plugin;
+    App = obsidian.App;
+    TFile = obsidian.TFile;
+    Notice = obsidian.Notice;
+} catch (error) {
+    // Fall back to mock API for testing
+    if (typeof global !== 'undefined' && (global as any).obsidian) {
+        const obsidian = (global as any).obsidian;
+        Plugin = obsidian.Plugin;
+        App = obsidian.App;
+        TFile = obsidian.TFile;
+        Notice = obsidian.Notice;
+    } else {
+        // Create minimal mock types for development
+        type Plugin = any;
+        type App = any;
+        type TFile = any;
+        type Notice = any;
+    }
+}
+
 import { TaskManager } from './task-manager';
 import { TaskSyncSettings, DEFAULT_SETTINGS } from './settings';
 import { TaskSyncSettingTab } from './settings-tab';
