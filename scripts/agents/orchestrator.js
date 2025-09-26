@@ -171,6 +171,11 @@ function routeJobToAgent(job) {
     return orchestrator.routeJobToAgent(job);
 }
 
+// Alias for backward compatibility (some tests may expect routeTaskToAgent)
+function routeTaskToAgent(job) {
+    return routeJobToAgent(job);
+}
+
 function processJobWithAgent(job) {
     const orchestrator = new EnhancedOrchestrator();
     return orchestrator.processJobWithAgent(job);
@@ -235,6 +240,7 @@ if (require.main === module) {
 
 module.exports = {
     routeJobToAgent,
+    routeTaskToAgent, // Alias for backward compatibility
     processJobWithAgent,
     createTestRequirementJob,
     createImplementationRequirementJob,
