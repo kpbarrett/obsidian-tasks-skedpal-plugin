@@ -1,6 +1,9 @@
 // Conditional import for Obsidian API - supports both real and mock environments
 let App: any, TFile: any, Notice: any, normalizePath: any;
 
+type AppType = typeof App;
+type TFileType = typeof TFile;
+
 try {
     // Try to import the real Obsidian API
     const obsidian = require('obsidian');
@@ -40,10 +43,10 @@ export interface ObsidianTask {
 }
 
 export class TaskManager {
-    private app: App;
+    private app: AppType;
     private settings: TaskSyncSettings;
 
-    constructor(app: App, settings: TaskSyncSettings) {
+    constructor(app: AppType, settings: TaskSyncSettings) {
         this.app = app;
         this.settings = settings;
     }
@@ -68,7 +71,7 @@ export class TaskManager {
     /**
      * Determines if a file should be processed for tasks
      */
-    private shouldProcessFile(file: TFile): boolean {
+    private shouldProcessFile(file: TFileType): boolean {
         // Check if file matches any of the task file patterns
         const filePath = normalizePath(file.path);
         
@@ -103,7 +106,7 @@ export class TaskManager {
     /**
      * Extracts tasks from a markdown file
      */
-    private async extractTasksFromFile(file: TFile): Promise<ObsidianTask[]> {
+    private async extractTasksFromFile(file: TFileType): Promise<ObsidianTask[]> {
         const tasks: ObsidianTask[] = [];
         const content = await this.app.vault.read(file);
         const lines = content.split('\n');

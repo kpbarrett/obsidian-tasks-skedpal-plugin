@@ -1,6 +1,8 @@
 // Conditional import for Obsidian API - supports both real and mock environments
 let App: any, PluginSettingTab: any, Setting: any;
 
+type AppType = typeof App;
+
 try {
     // Try to import the real Obsidian API
     const obsidian = require('obsidian');
@@ -28,7 +30,7 @@ import { TaskSyncSettings } from './settings';
 export class TaskSyncSettingTab extends PluginSettingTab {
     plugin: TaskSyncPlugin;
 
-    constructor(app: App, plugin: TaskSyncPlugin) {
+    constructor(app: AppType, plugin: TaskSyncPlugin) {
         super(app, plugin);
         this.plugin = plugin;
     }
@@ -42,9 +44,9 @@ export class TaskSyncSettingTab extends PluginSettingTab {
         new Setting(containerEl)
             .setName('Auto-sync on task changes')
             .setDesc('Automatically sync tasks when they are modified')
-            .addToggle(toggle => toggle
+            .addToggle((toggle: any) => toggle
                 .setValue(this.plugin.settings.autoSync)
-                .onChange(async (value) => {
+                .onChange(async (value: boolean) => {
                     this.plugin.settings.autoSync = value;
                     await this.plugin.saveSettings();
                 }));
@@ -52,10 +54,10 @@ export class TaskSyncSettingTab extends PluginSettingTab {
         new Setting(containerEl)
             .setName('SkedPal API Key')
             .setDesc('Your SkedPal API key for authentication')
-            .addText(text => text
+            .addText((text: any) => text
                 .setPlaceholder('Enter your API key')
                 .setValue(this.plugin.settings.skedPalApiKey)
-                .onChange(async (value) => {
+                .onChange(async (value: string) => {
                     this.plugin.settings.skedPalApiKey = value;
                     await this.plugin.saveSettings();
                 }));
@@ -63,10 +65,10 @@ export class TaskSyncSettingTab extends PluginSettingTab {
         new Setting(containerEl)
             .setName('SkedPal Workspace ID')
             .setDesc('Your SkedPal workspace ID')
-            .addText(text => text
+            .addText((text: any) => text
                 .setPlaceholder('Enter workspace ID')
                 .setValue(this.plugin.settings.skedPalWorkspaceId)
-                .onChange(async (value) => {
+                .onChange(async (value: string) => {
                     this.plugin.settings.skedPalWorkspaceId = value;
                     await this.plugin.saveSettings();
                 }));
@@ -74,10 +76,10 @@ export class TaskSyncSettingTab extends PluginSettingTab {
         new Setting(containerEl)
             .setName('Sync interval (seconds)')
             .setDesc('Interval for automatic sync in seconds (0 to disable)')
-            .addText(text => text
+            .addText((text: any) => text
                 .setPlaceholder('300')
                 .setValue(this.plugin.settings.syncInterval.toString())
-                .onChange(async (value) => {
+                .onChange(async (value: string) => {
                     const numValue = parseInt(value);
                     if (!isNaN(numValue)) {
                         this.plugin.settings.syncInterval = numValue;
@@ -88,9 +90,9 @@ export class TaskSyncSettingTab extends PluginSettingTab {
         new Setting(containerEl)
             .setName('Include completed tasks')
             .setDesc('Sync tasks that are marked as completed')
-            .addToggle(toggle => toggle
+            .addToggle((toggle: any) => toggle
                 .setValue(this.plugin.settings.includeCompletedTasks)
-                .onChange(async (value) => {
+                .onChange(async (value: boolean) => {
                     this.plugin.settings.includeCompletedTasks = value;
                     await this.plugin.saveSettings();
                 }));

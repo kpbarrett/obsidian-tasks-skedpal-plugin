@@ -1,6 +1,9 @@
 // Conditional import for Obsidian API - supports both real and mock environments
 let Plugin: any, App: any, TFile: any, Notice: any;
 
+type AppType = typeof App;
+type TFileType = typeof TFile;
+
 try {
     // Try to import the real Obsidian API
     const obsidian = require('obsidian');
@@ -64,7 +67,7 @@ export default class TaskSyncPlugin extends Plugin {
 
         // Register event handlers for task changes
         this.registerEvent(
-            this.app.vault.on('modify', (file: TFile) => {
+            this.app.vault.on('modify', (file: TFileType) => {
                 if (this.isTaskFile(file)) {
                     this.handleTaskChange(file);
                 }
@@ -86,14 +89,14 @@ export default class TaskSyncPlugin extends Plugin {
         await this.saveData(this.settings);
     }
 
-    private isTaskFile(file: TFile): boolean {
+    private isTaskFile(file: TFileType): boolean {
         // Check if file contains task markers or is in a tasks directory
         return file.extension === 'md' && 
                (file.path.includes('/tasks/') || 
                 file.name.toLowerCase().includes('task'));
     }
 
-    private async handleTaskChange(file: TFile) {
+    private async handleTaskChange(file: TFileType) {
         if (this.settings.autoSync) {
             await this.syncTasks();
         }
