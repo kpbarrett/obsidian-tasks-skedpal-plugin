@@ -1,0 +1,13 @@
+{
+  "id": "job-1758845165889-001",
+  "type": "implement-feature",
+  "title": "Implement Obsidian API Mocking for Test Environment",
+  "feature": "Create comprehensive mock for Obsidian API modules to enable testing in CI/CD environment",
+  "requirement": "TEST-INFRA-001",
+  "priority": "high",
+  "agent": "developer",
+  "status": "planned",
+  "createdAt": "2025-09-26T00:00:00.000Z",
+  "description": "The test suite for REQ-001 fails due to missing Obsidian API module. Implement proper mocking strategy to simulate Obsidian App, Vault, and other required components for reliable testing.",
+  "context": "Test report REQ-001 identifies that tests cannot run without Obsidian API. This is a critical blocker for CI/CD pipeline."
+}
