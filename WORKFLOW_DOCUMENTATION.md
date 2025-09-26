@@ -30,7 +30,7 @@ This workflow has been updated to use `PROJECT_REQUIREMENTS.md` as the single so
 ## Developer Job Processing Workflow
 
 ### Step 1: Job Selection
-- Retrieve the lowest-lexicographically-ordered job from `ops/jobs/inbox`
+- If any high-priority jobs exist, retrieve the first lexicographically-ordered high-priority job from `ops/jobs/inbox`. If no high-priority jobs exist, retrieve the first lexicographically-ordered job from `ops/jobs/inbox`.
 - Read and understand the job requirements
 
 ### Step 2: Implementation
