@@ -1,0 +1,71 @@
+name: Project Issue
+description: Track work items derived from requirements
+title: "[REQ-###] <concise summary>"
+labels: ["triage"]
+assignees: []
+
+body:
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: Select requirement priority
+      options:
+        - High
+        - Medium
+        - Low
+    validations:
+      required: true
+
+  - type: input
+    id: requirement
+    attributes:
+      label: Requirement ID
+      description: Reference to PROJECT_REQUIREMENTS.md (e.g. REQ-001)
+      placeholder: "REQ-###"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Summarize the requirement or bugfix/enhancement.
+      placeholder: "What needs to be built, fixed, or improved?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: Define clear conditions for success.
+      placeholder: |
+        - Condition 1
+        - Condition 2
+    validations:
+      required: true
+
+  - type: textarea
+    id: implementation
+    attributes:
+      label: Implementation Notes (optional)
+      description: Developer notes, constraints, or hints.
+      placeholder: "e.g. affected modules, edge cases, performance concerns"
+
+  - type: textarea
+    id: test_plan
+    attributes:
+      label: Test Plan
+      description: How will the Test Author and Tester validate the change?
+      placeholder: |
+        - Unit tests
+        - Integration tests
+        - End-to-end tests
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence / Reports
+      description: Link to reports, logs, or artifacts validating the outcome.
+      placeholder: "Attach screenshots, report links, or CI job IDs"
