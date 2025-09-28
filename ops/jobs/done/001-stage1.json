@@ -1,9 +1,0 @@
-{
-  "goal": "Stage 1: run stub test loop",
-  "requires": [
-    "tests/stub.spec.ts",
-    "scripts/dev-hooks/emit-plugin-task.js",
-    "scripts/dev-hooks/receive-extension-task.js"
-  ],
-  "notes": "Scaffold minimal stubs if missing; do not launch any servers."
-}

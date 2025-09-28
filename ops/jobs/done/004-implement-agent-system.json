@@ -1,2 +1,0 @@
-{
-  \"id\": \"task-004\",\n  \"type\": \"implement-feature\",\n  \"title\": \"Implement four-agent task processing system\",\n  \"feature\": \"agent-based-task-routing\",\n  \"priority\": \"high\",\n  \"agent\": \"developer\",\n  \"requires\": [\n    \"scripts/agents/developer.js\",\n    \"scripts/agents/tester.js\", \n    \"scripts/agents/engineer.js\",\n    \"scripts/agents/orchestrator.js\"\n  ],\n  \"notes\": \"Update task workflow to use four specialized agents: Developer, Tester, Engineer, and Orchestrator\"\n}"
