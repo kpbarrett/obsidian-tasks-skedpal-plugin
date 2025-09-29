@@ -91,9 +91,27 @@ export default class TaskSyncPlugin extends Plugin {
 
     private isTaskFile(file: TFileType): boolean {
         // Check if file contains task markers or is in a tasks directory
-        return file.extension === 'md' && 
-               (file.path.includes('/tasks/') || 
-                file.name.toLowerCase().includes('task'));
+        // Also check if file has tasks in metadata cache
+        if (file.extension !== 'md') {
+            return false;
+        }
+
+        // Check file path patterns
+        if (file.path.includes('/tasks/') || file.name.toLowerCase().includes('task')) {
+            return true;
+        }
+
+        // Check if file has tasks in metadata cache
+        try {
+            const cache = this.app.metadataCache?.getFileCache(file);
+            if (cache?.listItems) {
+                return cache.listItems.some((item: any) => item.task !== undefined);
+            }
+        } catch (error) {
+            // If metadata cache is not available, fall back to basic check
+        }
+
+        return false;
     }
 
     private async handleTaskChange(file: TFileType) {

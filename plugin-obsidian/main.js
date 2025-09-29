@@ -20,12 +20,16 @@ var App;
 var TFile;
 var Notice;
 var normalizePath;
+var MetadataCache;
+var CachedMetadata;
 try {
   const obsidian = require("obsidian");
   App = obsidian.App;
   TFile = obsidian.TFile;
   Notice = obsidian.Notice;
   normalizePath = obsidian.normalizePath;
+  MetadataCache = obsidian.MetadataCache;
+  CachedMetadata = obsidian.CachedMetadata;
 } catch (error) {
   if (typeof global !== "undefined" && global.obsidian) {
     const obsidian = global.obsidian;
@@ -33,6 +37,8 @@ try {
     TFile = obsidian.TFile;
     Notice = obsidian.Notice;
     normalizePath = obsidian.normalizePath;
+    MetadataCache = obsidian.MetadataCache;
+    CachedMetadata = obsidian.CachedMetadata;
   } else {
     normalizePath = (path) => path.replace(/\\/g, "/").replace(/\/+/g, "/").replace(/\/$/, "");
   }
@@ -42,7 +48,141 @@ var TaskManager = class {
     this.app = app;
     this.settings = settings;
   }
+  isTasksPluginAvailable() {
+    var _a, _b;
+    return !!((_a = this.app.plugins) == null ? void 0 : _a.getPlugin("obsidian-tasks-plugin")) || !!((_b = this.app.plugins) == null ? void 0 : _b.getPlugin("tasks"));
+  }
+  getTasksFromMetadataCache() {
+    const tasks = [];
+    if (!this.app.metadataCache) {
+      return tasks;
+    }
+    const files = this.app.vault.getMarkdownFiles();
+    for (const file of files) {
+      if (!this.shouldProcessFile(file)) {
+        continue;
+      }
+      const cache = this.app.metadataCache.getFileCache(file);
+      if (!cache) {
+        continue;
+      }
+      const fileTasks = this.extractTasksFromCache(file, cache);
+      tasks.push(...fileTasks);
+    }
+    return tasks;
+  }
+  extractTasksFromCache(file, cache) {
+    const tasks = [];
+    if (!cache.listItems) {
+      return tasks;
+    }
+    for (const listItem of cache.listItems) {
+      if (this.isTaskListItem(listItem)) {
+        const task = this.parseTaskFromCache(file, listItem);
+        if (task) {
+          tasks.push(task);
+        }
+      }
+    }
+    return tasks;
+  }
+  isTaskListItem(listItem) {
+    return listItem.task !== void 0;
+  }
+  parseTaskFromCache(file, listItem) {
+    var _a;
+    const taskContent = listItem.text || "";
+    const completed = listItem.task === "x" || listItem.task === "X";
+    if (completed && !this.settings.includeCompletedTasks) {
+      return null;
+    }
+    const metadata = this.parseExtendedTaskMetadata(taskContent);
+    return {
+      id: this.generateTaskId(file.path, listItem.position.start.line),
+      description: metadata.cleanDescription,
+      completed,
+      filePath: file.path,
+      lineNumber: listItem.position.start.line + 1,
+      priority: metadata.priority,
+      dueDate: metadata.dueDate,
+      scheduledDate: metadata.scheduledDate,
+      startDate: metadata.startDate,
+      doneDate: metadata.doneDate,
+      recurrence: metadata.recurrence,
+      createdDate: metadata.createdDate,
+      tags: metadata.tags,
+      rawContent: taskContent,
+      fileModifiedTime: (_a = file.stat) == null ? void 0 : _a.mtime
+    };
+  }
+  parseExtendedTaskMetadata(content) {
+    let cleanDescription = content;
+    let priority;
+    let dueDate;
+    let scheduledDate;
+    let startDate;
+    let doneDate;
+    let recurrence;
+    let createdDate;
+    const tags = [];
+    const priorityMatch = content.match(/\s\((\w)\)\s/);
+    if (priorityMatch) {
+      priority = priorityMatch[1];
+      cleanDescription = cleanDescription.replace(/\s\(\w\)\s/, " ");
+    }
+    const dueDateMatch = content.match(/📅\s*(\d{4}-\d{2}-\d{2})|due:(\d{4}-\d{2}-\d{2})/);
+    if (dueDateMatch) {
+      dueDate = dueDateMatch[1] || dueDateMatch[2];
+      cleanDescription = cleanDescription.replace(/📅\s*\d{4}-\d{2}-\d{2}/, "").replace(/due:\d{4}-\d{2}-\d{2}/, "");
+    }
+    const scheduledMatch = content.match(/⏳\s*(\d{4}-\d{2}-\d{2})|scheduled:(\d{4}-\d{2}-\d{2})/);
+    if (scheduledMatch) {
+      scheduledDate = scheduledMatch[1] || scheduledMatch[2];
+      cleanDescription = cleanDescription.replace(/⏳\s*\d{4}-\d{2}-\d{2}/, "").replace(/scheduled:\d{4}-\d{2}-\d{2}/, "");
+    }
+    const startMatch = content.match(/🛫\s*(\d{4}-\d{2}-\d{2})|start:(\d{4}-\d{2}-\d{2})/);
+    if (startMatch) {
+      startDate = startMatch[1] || startMatch[2];
+      cleanDescription = cleanDescription.replace(/🛫\s*\d{4}-\d{2}-\d{2}/, "").replace(/start:\d{4}-\d{2}-\d{2}/, "");
+    }
+    const doneMatch = content.match(/✅\s*(\d{4}-\d{2}-\d{2})|done:(\d{4}-\d{2}-\d{2})/);
+    if (doneMatch) {
+      doneDate = doneMatch[1] || doneMatch[2];
+      cleanDescription = cleanDescription.replace(/✅\s*\d{4}-\d{2}-\d{2}/, "").replace(/done:\d{4}-\d{2}-\d{2}/, "");
+    }
+    const recurMatch = content.match(/🔁\s*(.+?)(?=\s|$)|recur:(.+?)(?=\s|$)/);
+    if (recurMatch) {
+      recurrence = recurMatch[1] || recurMatch[2];
+      cleanDescription = cleanDescription.replace(/🔁\s*.+?(?=\s|$)/, "").replace(/recur:.+?(?=\s|$)/, "");
+    }
+    const createdMatch = content.match(/➕\s*(\d{4}-\d{2}-\d{2})|created:(\d{4}-\d{2}-\d{2})/);
+    if (createdMatch) {
+      createdDate = createdMatch[1] || createdMatch[2];
+      cleanDescription = cleanDescription.replace(/➕\s*\d{4}-\d{2}-\d{2}/, "").replace(/created:\d{4}-\d{2}-\d{2}/, "");
+    }
+    const tagRegex = /#([\w-]+)/g;
+    let tagMatch;
+    while ((tagMatch = tagRegex.exec(content)) !== null) {
+      tags.push(tagMatch[1]);
+    }
+    cleanDescription = cleanDescription.replace(/\s+/g, " ").trim();
+    return {
+      cleanDescription,
+      priority,
+      dueDate,
+      scheduledDate,
+      startDate,
+      doneDate,
+      recurrence,
+      createdDate,
+      tags
+    };
+  }
   async collectTasks() {
+    const cacheTasks = this.getTasksFromMetadataCache();
+    if (cacheTasks.length > 0) {
+      return cacheTasks;
+    }
     const tasks = [];
     const markdownFiles = this.app.vault.getMarkdownFiles();
     for (const file of markdownFiles) {
@@ -95,45 +235,23 @@ var TaskManager = class {
     if (completed && !this.settings.includeCompletedTasks) {
       return null;
     }
-    const priority = this.extractPriority(description);
-    const dueDate = this.extractDueDate(description);
-    const tags = this.extractTags(description);
+    const metadata = this.parseExtendedTaskMetadata(description);
     return {
       id: this.generateTaskId(filePath, lineNumber),
-      description: this.cleanDescription(description),
+      description: metadata.cleanDescription,
       completed,
       filePath,
       lineNumber,
-      priority,
-      dueDate,
-      tags,
+      priority: metadata.priority,
+      dueDate: metadata.dueDate,
+      scheduledDate: metadata.scheduledDate,
+      startDate: metadata.startDate,
+      doneDate: metadata.doneDate,
+      recurrence: metadata.recurrence,
+      createdDate: metadata.createdDate,
+      tags: metadata.tags,
       rawContent: line
     };
-  }
-  extractPriority(description) {
-    const priorityRegex = /\s\((.)\)\s/;
-    const match = description.match(priorityRegex);
-    return match ? match[1] : void 0;
-  }
-  extractDueDate(description) {
-    const dateRegex = /📅\s*(\d{4}-\d{2}-\d{2})|⏳\s*(\d{4}-\d{2}-\d{2})/;
-    const match = description.match(dateRegex);
-    return match ? match[1] || match[2] : void 0;
-  }
-  extractTags(description) {
-    const tagRegex = /#([\w-]+)/g;
-    const tags = [];
-    let match;
-    while ((match = tagRegex.exec(description)) !== null) {
-      tags.push(match[1]);
-    }
-    return tags;
-  }
-  cleanDescription(description) {
-    let cleaned = description.replace(/\s\(.\)\s/, " ");
-    cleaned = cleaned.replace(/📅\s*\d{4}-\d{2}-\d{2}/, "");
-    cleaned = cleaned.replace(/⏳\s*\d{4}-\d{2}-\d{2}/, "");
-    return cleaned.trim();
   }
   generateTaskId(filePath, lineNumber) {
     return `${filePath}:${lineNumber}`;
@@ -173,7 +291,58 @@ var TaskManager = class {
   }
   async getModifiedTasks(since) {
     const allTasks = await this.collectTasks();
-    return allTasks;
+    return allTasks.filter((task) => {
+      if (!task.fileModifiedTime) {
+        return true;
+      }
+      return task.fileModifiedTime > since.getTime();
+    });
+  }
+  async getTasksFromTasksPlugin() {
+    const tasks = [];
+    if (!this.isTasksPluginAvailable()) {
+      return tasks;
+    }
+    try {
+      const tasksPlugin = this.app.plugins.getPlugin("obsidian-tasks-plugin") || this.app.plugins.getPlugin("tasks");
+      if (tasksPlugin && tasksPlugin.getTasks) {
+        const pluginTasks = tasksPlugin.getTasks();
+        for (const pluginTask of pluginTasks) {
+          const task = this.convertTasksPluginTask(pluginTask);
+          if (task) {
+            tasks.push(task);
+          }
+        }
+      }
+    } catch (error) {
+      console.warn("Error accessing Tasks plugin API:", error);
+    }
+    return tasks;
+  }
+  convertTasksPluginTask(pluginTask) {
+    if (!pluginTask || !pluginTask.text) {
+      return null;
+    }
+    const metadata = this.parseExtendedTaskMetadata(pluginTask.text);
+    return {
+      id: pluginTask.id || this.generateTaskId(pluginTask.path || "", pluginTask.line || 0),
+      description: metadata.cleanDescription,
+      completed: pluginTask.status === "x" || pluginTask.status === "X",
+      filePath: pluginTask.path || "",
+      lineNumber: pluginTask.line || 0,
+      priority: metadata.priority,
+      dueDate: metadata.dueDate,
+      scheduledDate: metadata.scheduledDate,
+      startDate: metadata.startDate,
+      doneDate: metadata.doneDate,
+      recurrence: metadata.recurrence,
+      createdDate: metadata.createdDate,
+      tags: metadata.tags,
+      rawContent: pluginTask.text,
+      status: pluginTask.status,
+      blockId: pluginTask.blockId,
+      fileModifiedTime: pluginTask.fileModifiedTime
+    };
   }
 };
 
@@ -298,7 +467,21 @@ var TaskSyncPlugin = class extends Plugin {
     await this.saveData(this.settings);
   }
   isTaskFile(file) {
-    return file.extension === "md" && (file.path.includes("/tasks/") || file.name.toLowerCase().includes("task"));
+    var _a;
+    if (file.extension !== "md") {
+      return false;
+    }
+    if (file.path.includes("/tasks/") || file.name.toLowerCase().includes("task")) {
+      return true;
+    }
+    try {
+      const cache = (_a = this.app.metadataCache) == null ? void 0 : _a.getFileCache(file);
+      if (cache == null ? void 0 : cache.listItems) {
+        return cache.listItems.some((item) => item.task !== void 0);
+      }
+    } catch (error) {
+    }
+    return false;
   }
   async handleTaskChange(file) {
     if (this.settings.autoSync) {

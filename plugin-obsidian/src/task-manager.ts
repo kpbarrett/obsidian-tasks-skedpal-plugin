@@ -1,5 +1,5 @@
 // Conditional import for Obsidian API - supports both real and mock environments
-let App: any, TFile: any, Notice: any, normalizePath: any;
+let App: any, TFile: any, Notice: any, normalizePath: any, MetadataCache: any, CachedMetadata: any;
 
 type AppType = typeof App;
 type TFileType = typeof TFile;
@@ -11,6 +11,8 @@ try {
     TFile = obsidian.TFile;
     Notice = obsidian.Notice;
     normalizePath = obsidian.normalizePath;
+    MetadataCache = obsidian.MetadataCache;
+    CachedMetadata = obsidian.CachedMetadata;
 } catch (error) {
     // Fall back to mock API for testing
     if (typeof global !== 'undefined' && (global as any).obsidian) {
@@ -19,11 +21,15 @@ try {
         TFile = obsidian.TFile;
         Notice = obsidian.Notice;
         normalizePath = obsidian.normalizePath;
+        MetadataCache = obsidian.MetadataCache;
+        CachedMetadata = obsidian.CachedMetadata;
     } else {
         // Create minimal mock types for development
         type App = any;
         type TFile = any;
         type Notice = any;
+        type MetadataCache = any;
+        type CachedMetadata = any;
         normalizePath = (path: string) => path.replace(/\\/g, '/').replace(/\/+/g, '/').replace(/\/$/, '');
     }
 }
@@ -40,6 +46,17 @@ export interface ObsidianTask {
     dueDate?: string;
     tags: string[];
     rawContent: string;
+    // Extended Obsidian task properties
+    scheduledDate?: string;
+    startDate?: string;
+    doneDate?: string;
+    recurrence?: string;
+    createdDate?: string;
+    // Obsidian Tasks plugin specific properties
+    status?: string;
+    blockId?: string;
+    // File metadata
+    fileModifiedTime?: number;
 }
 
 export class TaskManager {
@@ -52,9 +69,217 @@ export class TaskManager {
     }
 
     /**
+     * Checks if Obsidian's Tasks plugin is available
+     */
+    private isTasksPluginAvailable(): boolean {
+        // Check if Tasks plugin is installed and available
+        return !!(this.app as any).plugins?.getPlugin('obsidian-tasks-plugin') ||
+               !!(this.app as any).plugins?.getPlugin('tasks');
+    }
+
+    /**
+     * Gets tasks using Obsidian's metadata cache when available
+     */
+    private getTasksFromMetadataCache(): ObsidianTask[] {
+        const tasks: ObsidianTask[] = [];
+        
+        if (!this.app.metadataCache) {
+            return tasks;
+        }
+
+        const files = this.app.vault.getMarkdownFiles();
+        
+        for (const file of files) {
+            if (!this.shouldProcessFile(file)) {
+                continue;
+            }
+
+            const cache = this.app.metadataCache.getFileCache(file);
+            if (!cache) {
+                continue;
+            }
+
+            // Extract tasks from list items in the cache
+            const fileTasks = this.extractTasksFromCache(file, cache);
+            tasks.push(...fileTasks);
+        }
+
+        return tasks;
+    }
+
+    /**
+     * Extracts tasks from Obsidian's metadata cache
+     */
+    private extractTasksFromCache(file: TFileType, cache: any): ObsidianTask[] {
+        const tasks: ObsidianTask[] = [];
+        
+        if (!cache.listItems) {
+            return tasks;
+        }
+
+        for (const listItem of cache.listItems) {
+            if (this.isTaskListItem(listItem)) {
+                const task = this.parseTaskFromCache(file, listItem);
+                if (task) {
+                    tasks.push(task);
+                }
+            }
+        }
+
+        return tasks;
+    }
+
+    /**
+     * Determines if a list item is a task
+     */
+    private isTaskListItem(listItem: any): boolean {
+        // Check if this is a task list item (has checkbox)
+        return listItem.task !== undefined;
+    }
+
+    /**
+     * Parses a task from Obsidian's metadata cache
+     */
+    private parseTaskFromCache(file: TFileType, listItem: any): ObsidianTask | null {
+        const taskContent = listItem.text || '';
+        const completed = listItem.task === 'x' || listItem.task === 'X';
+
+        // Skip completed tasks if not included in settings
+        if (completed && !this.settings.includeCompletedTasks) {
+            return null;
+        }
+
+        // Extract extended task metadata using Obsidian's task syntax
+        const metadata = this.parseExtendedTaskMetadata(taskContent);
+
+        return {
+            id: this.generateTaskId(file.path, listItem.position.start.line),
+            description: metadata.cleanDescription,
+            completed,
+            filePath: file.path,
+            lineNumber: listItem.position.start.line + 1,
+            priority: metadata.priority,
+            dueDate: metadata.dueDate,
+            scheduledDate: metadata.scheduledDate,
+            startDate: metadata.startDate,
+            doneDate: metadata.doneDate,
+            recurrence: metadata.recurrence,
+            createdDate: metadata.createdDate,
+            tags: metadata.tags,
+            rawContent: taskContent,
+            fileModifiedTime: file.stat?.mtime
+        };
+    }
+
+    /**
+     * Parses extended task metadata using Obsidian Tasks plugin syntax
+     */
+    private parseExtendedTaskMetadata(content: string): {
+        cleanDescription: string;
+        priority?: string;
+        dueDate?: string;
+        scheduledDate?: string;
+        startDate?: string;
+        doneDate?: string;
+        recurrence?: string;
+        createdDate?: string;
+        tags: string[];
+    } {
+        let cleanDescription = content;
+        let priority: string | undefined;
+        let dueDate: string | undefined;
+        let scheduledDate: string | undefined;
+        let startDate: string | undefined;
+        let doneDate: string | undefined;
+        let recurrence: string | undefined;
+        let createdDate: string | undefined;
+        const tags: string[] = [];
+
+        // Parse Obsidian Tasks plugin syntax
+        // Priority: (A), (B), (C), (D)
+        const priorityMatch = content.match(/\s\((\w)\)\s/);
+        if (priorityMatch) {
+            priority = priorityMatch[1];
+            cleanDescription = cleanDescription.replace(/\s\(\w\)\s/, ' ');
+        }
+
+        // Due date: 📅 YYYY-MM-DD or due:YYYY-MM-DD
+        const dueDateMatch = content.match(/📅\s*(\d{4}-\d{2}-\d{2})|due:(\d{4}-\d{2}-\d{2})/);
+        if (dueDateMatch) {
+            dueDate = dueDateMatch[1] || dueDateMatch[2];
+            cleanDescription = cleanDescription.replace(/📅\s*\d{4}-\d{2}-\d{2}/, '').replace(/due:\d{4}-\d{2}-\d{2}/, '');
+        }
+
+        // Scheduled date: ⏳ YYYY-MM-DD or scheduled:YYYY-MM-DD
+        const scheduledMatch = content.match(/⏳\s*(\d{4}-\d{2}-\d{2})|scheduled:(\d{4}-\d{2}-\d{2})/);
+        if (scheduledMatch) {
+            scheduledDate = scheduledMatch[1] || scheduledMatch[2];
+            cleanDescription = cleanDescription.replace(/⏳\s*\d{4}-\d{2}-\d{2}/, '').replace(/scheduled:\d{4}-\d{2}-\d{2}/, '');
+        }
+
+        // Start date: 🛫 YYYY-MM-DD or start:YYYY-MM-DD
+        const startMatch = content.match(/🛫\s*(\d{4}-\d{2}-\d{2})|start:(\d{4}-\d{2}-\d{2})/);
+        if (startMatch) {
+            startDate = startMatch[1] || startMatch[2];
+            cleanDescription = cleanDescription.replace(/🛫\s*\d{4}-\d{2}-\d{2}/, '').replace(/start:\d{4}-\d{2}-\d{2}/, '');
+        }
+
+        // Done date: ✅ YYYY-MM-DD or done:YYYY-MM-DD
+        const doneMatch = content.match(/✅\s*(\d{4}-\d{2}-\d{2})|done:(\d{4}-\d{2}-\d{2})/);
+        if (doneMatch) {
+            doneDate = doneMatch[1] || doneMatch[2];
+            cleanDescription = cleanDescription.replace(/✅\s*\d{4}-\d{2}-\d{2}/, '').replace(/done:\d{4}-\d{2}-\d{2}/, '');
+        }
+
+        // Recurrence: 🔁 every day/week/month or recur:pattern
+        const recurMatch = content.match(/🔁\s*(.+?)(?=\s|$)|recur:(.+?)(?=\s|$)/);
+        if (recurMatch) {
+            recurrence = recurMatch[1] || recurMatch[2];
+            cleanDescription = cleanDescription.replace(/🔁\s*.+?(?=\s|$)/, '').replace(/recur:.+?(?=\s|$)/, '');
+        }
+
+        // Created date: ➕ YYYY-MM-DD or created:YYYY-MM-DD
+        const createdMatch = content.match(/➕\s*(\d{4}-\d{2}-\d{2})|created:(\d{4}-\d{2}-\d{2})/);
+        if (createdMatch) {
+            createdDate = createdMatch[1] || createdMatch[2];
+            cleanDescription = cleanDescription.replace(/➕\s*\d{4}-\d{2}-\d{2}/, '').replace(/created:\d{4}-\d{2}-\d{2}/, '');
+        }
+
+        // Extract tags
+        const tagRegex = /#([\w-]+)/g;
+        let tagMatch;
+        while ((tagMatch = tagRegex.exec(content)) !== null) {
+            tags.push(tagMatch[1]);
+        }
+
+        // Clean up extra spaces
+        cleanDescription = cleanDescription.replace(/\s+/g, ' ').trim();
+
+        return {
+            cleanDescription,
+            priority,
+            dueDate,
+            scheduledDate,
+            startDate,
+            doneDate,
+            recurrence,
+            createdDate,
+            tags
+        };
+    }
+
+    /**
      * Collects all tasks from Obsidian vault
      */
     async collectTasks(): Promise<ObsidianTask[]> {
+        // Try to use Obsidian's metadata cache first for better performance and integration
+        const cacheTasks = this.getTasksFromMetadataCache();
+        
+        if (cacheTasks.length > 0) {
+            return cacheTasks;
+        }
+
+        // Fall back to manual file processing if metadata cache is not available
         const tasks: ObsidianTask[] = [];
         const markdownFiles = this.app.vault.getMarkdownFiles();
 
@@ -144,73 +369,28 @@ export class TaskManager {
             return null;
         }
 
-        // Extract additional task metadata
-        const priority = this.extractPriority(description);
-        const dueDate = this.extractDueDate(description);
-        const tags = this.extractTags(description);
+        // Extract extended task metadata using Obsidian's task syntax
+        const metadata = this.parseExtendedTaskMetadata(description);
 
         return {
             id: this.generateTaskId(filePath, lineNumber),
-            description: this.cleanDescription(description),
+            description: metadata.cleanDescription,
             completed,
             filePath,
             lineNumber,
-            priority,
-            dueDate,
-            tags,
+            priority: metadata.priority,
+            dueDate: metadata.dueDate,
+            scheduledDate: metadata.scheduledDate,
+            startDate: metadata.startDate,
+            doneDate: metadata.doneDate,
+            recurrence: metadata.recurrence,
+            createdDate: metadata.createdDate,
+            tags: metadata.tags,
             rawContent: line
         };
     }
 
-    /**
-     * Extracts priority from task description
-     */
-    private extractPriority(description: string): string | undefined {
-        const priorityRegex = /\s\((.)\)\s/;
-        const match = description.match(priorityRegex);
-        return match ? match[1] : undefined;
-    }
 
-    /**
-     * Extracts due date from task description
-     */
-    private extractDueDate(description: string): string | undefined {
-        const dateRegex = /📅\s*(\d{4}-\d{2}-\d{2})|⏳\s*(\d{4}-\d{2}-\d{2})/;
-        const match = description.match(dateRegex);
-        return match ? (match[1] || match[2]) : undefined;
-    }
-
-    /**
-     * Extracts tags from task description
-     */
-    private extractTags(description: string): string[] {
-        const tagRegex = /#([\w-]+)/g;
-        const tags: string[] = [];
-        let match;
-        
-        while ((match = tagRegex.exec(description)) !== null) {
-            tags.push(match[1]);
-        }
-        
-        return tags;
-    }
-
-    /**
-     * Cleans description by removing metadata markers
-     */
-    private cleanDescription(description: string): string {
-        // Remove priority markers
-        let cleaned = description.replace(/\s\(.\)\s/, ' ');
-        
-        // Remove date markers
-        cleaned = cleaned.replace(/📅\s*\d{4}-\d{2}-\d{2}/, '');
-        cleaned = cleaned.replace(/⏳\s*\d{4}-\d{2}-\d{2}/, '');
-        
-        // Remove tags but keep them for context
-        // Tags are already extracted separately
-        
-        return cleaned.trim();
-    }
 
     /**
      * Generates a unique task ID
@@ -279,8 +459,77 @@ export class TaskManager {
      */
     async getModifiedTasks(since: Date): Promise<ObsidianTask[]> {
         const allTasks = await this.collectTasks();
-        // This would need file modification time tracking for proper implementation
-        // For now, return all tasks as a simplified implementation
-        return allTasks;
+        
+        // Filter tasks based on file modification time
+        return allTasks.filter(task => {
+            if (!task.fileModifiedTime) {
+                // If we don't have modification time, include the task
+                return true;
+            }
+            return task.fileModifiedTime > since.getTime();
+        });
+    }
+
+    /**
+     * Gets tasks using Obsidian's Tasks plugin API when available
+     */
+    async getTasksFromTasksPlugin(): Promise<ObsidianTask[]> {
+        const tasks: ObsidianTask[] = [];
+        
+        if (!this.isTasksPluginAvailable()) {
+            return tasks;
+        }
+
+        try {
+            // Try to use the Tasks plugin API if available
+            const tasksPlugin = (this.app as any).plugins.getPlugin('obsidian-tasks-plugin') ||
+                              (this.app as any).plugins.getPlugin('tasks');
+            
+            if (tasksPlugin && tasksPlugin.getTasks) {
+                const pluginTasks = tasksPlugin.getTasks();
+                
+                for (const pluginTask of pluginTasks) {
+                    const task = this.convertTasksPluginTask(pluginTask);
+                    if (task) {
+                        tasks.push(task);
+                    }
+                }
+            }
+        } catch (error) {
+            console.warn('Error accessing Tasks plugin API:', error);
+        }
+
+        return tasks;
+    }
+
+    /**
+     * Converts a Tasks plugin task to our ObsidianTask format
+     */
+    private convertTasksPluginTask(pluginTask: any): ObsidianTask | null {
+        if (!pluginTask || !pluginTask.text) {
+            return null;
+        }
+
+        const metadata = this.parseExtendedTaskMetadata(pluginTask.text);
+
+        return {
+            id: pluginTask.id || this.generateTaskId(pluginTask.path || '', pluginTask.line || 0),
+            description: metadata.cleanDescription,
+            completed: pluginTask.status === 'x' || pluginTask.status === 'X',
+            filePath: pluginTask.path || '',
+            lineNumber: pluginTask.line || 0,
+            priority: metadata.priority,
+            dueDate: metadata.dueDate,
+            scheduledDate: metadata.scheduledDate,
+            startDate: metadata.startDate,
+            doneDate: metadata.doneDate,
+            recurrence: metadata.recurrence,
+            createdDate: metadata.createdDate,
+            tags: metadata.tags,
+            rawContent: pluginTask.text,
+            status: pluginTask.status,
+            blockId: pluginTask.blockId,
+            fileModifiedTime: pluginTask.fileModifiedTime
+        };
     }
 }
