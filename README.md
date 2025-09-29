@@ -1,4 +1,6 @@
 # obsidian-tasks-skedpal-plugin
+https://github.com/kpbarrett/obsidian-tasks-skedpal-plugin
+
 A plugin that connects Obsidian Tasks to SkedPal.
 
 ## Motivation
