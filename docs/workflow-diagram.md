@@ -64,11 +64,11 @@ graph TD
 
 ### 3. Agent Routing
 - Orchestrator analyzes job type and properties
-- Routes to appropriate agent:
- - **Developer**: Feature implementation, bug fixes
- - **Tester**: Test execution, result recording
- - **Engineer**: Test analysis, job generation
- - **General**: Coordination, monitoring, defaults
+- Routes to appropriate agent based on role labels:
+ - **Developer** (`role: developer`): Feature implementation, bug fixes
+ - **Tester** (`role: tester`): Test execution, result recording
+ - **Engineer** (`role: engineer`): Test analysis, job generation
+ - **General** (`role: general`): Coordination, monitoring, defaults
 
 ### 4. Job Execution
 - Agent-specific logic is executed
@@ -111,4 +111,4 @@ scripts/
 - Failed jobs remain in working directory
 - Manual intervention may be required
 - System continues processing other jobs
-- Detailed error information in reports"
+- Detailed error information in reports

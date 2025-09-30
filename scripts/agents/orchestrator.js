@@ -61,6 +61,7 @@ class EnhancedOrchestrator {
             requirement: job.requirement,
             priority: job.priority,
             agent: job.agent,
+            labels: job.labels || [], // Include labels for role assignment
             status: 'planned',
             createdAt: new Date().toISOString()
         };
@@ -74,19 +75,35 @@ class EnhancedOrchestrator {
     routeJobToAgent(job) {
         console.log('Routing job to appropriate agent...');
 
+        // First check for explicit agent assignment
         if (job.agent) {
             return job.agent;
         }
 
-        // Auto-detect based on job type
+        // Check for role labels (new role assignment system)
+        if (job.labels && Array.isArray(job.labels)) {
+            if (job.labels.includes('role: developer')) {
+                return 'developer';
+            } else if (job.labels.includes('role: tester')) {
+                return 'tester';
+            } else if (job.labels.includes('role: test-author')) {
+                return 'test-author';
+            } else if (job.labels.includes('role: engineer')) {
+                return 'engineer';
+            } else if (job.labels.includes('role: general')) {
+                return 'general';
+            }
+        }
+
+        // Auto-detect based on job type (fallback)
         if (job.type === 'implement-feature' || job.type === 'fix-bug') {
             return 'developer';
         } else if (job.type === 'run-test') {
             return 'tester';
+        } else if (job.type === 'create-tests') {
+            return 'test-author';
         } else if (job.type === 'analyze-test-results') {
             return 'engineer';
-        } else if (job.type === 'create-tests') { // Add Test Author routing
-            return 'test-author';
         } else if (job.type === 'coordinate-workflow' || job.type === 'monitor-progress') {
             return 'general';
         }
@@ -103,10 +120,10 @@ class EnhancedOrchestrator {
                 return await processDeveloperJob(job);
             case 'tester':
                 return await processTesterJob(job);
+            case 'test-author':
+                return await processTestAuthorJob(job);
             case 'engineer':
                 return await processEngineerJob(job);
-            case 'test-author': // Add Test Author case
-                return await processTestAuthorJob(job);
             case 'general':
                 return await processGeneralJob(job);
             default:
@@ -124,6 +141,7 @@ class EnhancedOrchestrator {
             description: description,
             priority: priority,
             agent: 'test-author',
+            labels: ['role: test-author'],
             timestamp: new Date().toISOString()
         };
 
@@ -140,6 +158,7 @@ class EnhancedOrchestrator {
             description: description,
             priority: priority,
             agent: 'developer',
+            labels: ['role: developer'],
             timestamp: new Date().toISOString()
         };
 

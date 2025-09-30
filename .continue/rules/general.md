@@ -11,6 +11,12 @@ description: Global rules for GitFlow + GitHub Issues; minimal but enforceable.
 - **Tracking:** Every change is tied to a **GitHub Issue** with priority and acceptance criteria.
   - Do not act on changes unless they are documented in a GitHub Issue.
 - **State:** use labels `status: inbox → in progress → review → done`.
+- **Role Assignment:** Use role labels instead of GitHub user assignments:
+  - `role: developer` - Feature implementation, bug fixes
+  - `role: tester` - Test execution, result recording
+  - `role: test-author` - Test creation, test design, test planning
+  - `role: engineer` - Test analysis, job generation, releases
+  - `role: general` - Coordination, monitoring, defaults
 - **GitFlow branches:**
   - `main`: releases only (tagged by Engineers).
   - `development`: integration branch for merged bugfixes/enhancements.

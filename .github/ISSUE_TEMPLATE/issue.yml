@@ -17,6 +17,20 @@ body:
     validations:
       required: true
 
+  - type: dropdown
+    id: role
+    attributes:
+      label: Role Assignment
+      options:
+        - Developer
+        - Tester
+        - Test Author
+        - Engineer
+        - General
+      description: "Assign this ticket to a specific role using labels"
+    validations:
+      required: true
+
   - type: input
     id: requirement
     attributes:
@@ -69,7 +83,7 @@ body:
       label: Definition of Done
       options:
         - label: Branch created from `dev` (name like `dev/<issue#>-short-summary`)
-        - label: PR opened targeting `dev` and linked (e.g., “Closes #<issue>”)
+        - label: PR opened targeting `dev` and linked (e.g., "Closes #<issue>")
         - label: Tests added/updated and CI green
         - label: Docs/notes updated if needed
         - label: Evidence attached/linked (logs, screenshots, report links)
@@ -79,4 +93,3 @@ body:
     attributes:
       label: Evidence / Reports
       placeholder: "CI run IDs, screenshots, logs, benchmark links, etc."
-
