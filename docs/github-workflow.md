@@ -57,7 +57,6 @@ This document defines the workflow for issue assignment, priority management, an
 - `role: tester` - Test execution, result recording, validation
 - `role: test-author` - E2E testing, test framework, regression suites
 - `role: engineer` - Releases, branch management, workflow coordination
-- `role: general` - Coordination, monitoring, defaults
 - `role: project-lead` - Strategic guidance, conflict resolution, process exceptions
 
 #### Label Constraints:
@@ -203,13 +202,7 @@ graph TD
 - Enforces branch protections and quality gates
 - Maintains label integrity across all issues
 
-### General (`role: general`)
-- Coordinates workflow between roles
-- Monitors system progress and health
-- Handles unknown or unassigned issue types
-- Provides default behavior when specific roles are unavailable
-- **DO NOT** modify priority or role labels
-- Escalate issues requiring reassignment to Engineer
+
 
 ### Project Lead (`role: project-lead`)
 - Provides strategic guidance and direction
