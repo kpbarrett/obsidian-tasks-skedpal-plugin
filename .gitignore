@@ -141,3 +141,4 @@ dist
 # continue config & state
 .continue/
 
+tests/test-results/
