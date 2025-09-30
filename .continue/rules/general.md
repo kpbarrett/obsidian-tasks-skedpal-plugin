@@ -12,10 +12,10 @@ description: Global rules for GitFlow + GitHub Issues; minimal but enforceable.
   - Do not act on changes unless they are documented in a GitHub Issue.
 - **State:** use labels `status: inbox → in progress → review → done`.
 - **Role Assignment:** Use role labels instead of GitHub user assignments:
-  - `role: developer` - Feature implementation, bug fixes
-  - `role: tester` - Test execution, result recording
-  - `role: test-author` - Test creation, test design, test planning
-  - `role: engineer` - Test analysis, job generation, releases
+  - `role: developer` - Feature implementation, bug fixes, unit/integration tests
+  - `role: tester` - Test execution, result recording, validation
+  - `role: test-author` - E2E testing, test framework, regression suites
+  - `role: engineer` - Releases, branch management, workflow coordination
   - `role: general` - Coordination, monitoring, defaults
 - **Issue Assignment Workflow:**
   - Only Engineers can assign priority and role labels to new issues
