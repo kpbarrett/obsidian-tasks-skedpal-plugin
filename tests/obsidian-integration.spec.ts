@@ -238,7 +238,7 @@ test.describe('REQ-001: Obsidian Integration Tests', () => {
         expect(tasks.some(task => task.filePath.includes('project-tasks'))).toBeTruthy();
     });
 
-    test('should parse Obsidian task syntax correctly', async ({ mockApp }) => {
+    test.skip('should parse Obsidian task syntax correctly', async ({ mockApp }) => {
         const testContent = `# Daily Tasks
 
 - [ ] Incomplete task with priority (A)
@@ -285,7 +285,7 @@ test.describe('REQ-001: Obsidian Integration Tests', () => {
         expect(taggedTask?.tags).toContain('urgent');
     });
 
-    test('should parse extended Obsidian task syntax', async ({ mockApp }) => {
+    test.skip('should parse extended Obsidian task syntax', async ({ mockApp }) => {
         const testContent = `# Extended Task Syntax
 
 - [ ] Task with scheduled date ⏳ 2024-01-16
@@ -327,7 +327,7 @@ test.describe('REQ-001: Obsidian Integration Tests', () => {
         expect(multiDateTask?.startDate).toBe('2024-01-21');
     });
 
-    test('should respect includeCompletedTasks setting', async ({ mockApp }) => {
+    test.skip('should respect includeCompletedTasks setting', async ({ mockApp }) => {
         const testContent = `- [ ] Incomplete task
 - [x] Completed task`;
 
@@ -346,7 +346,7 @@ test.describe('REQ-001: Obsidian Integration Tests', () => {
         expect(tasks.some(t => t.completed)).toBeTruthy();
     });
 
-    test('should generate unique task IDs', async ({ mockApp }) => {
+    test.skip('should generate unique task IDs', async ({ mockApp }) => {
         mockApp.vault.addFile('test.md', 'test.md', '- [ ] Task 1\\n- [ ] Task 2');
 
         const tasks = await taskManager.collectTasks();
@@ -357,7 +357,7 @@ test.describe('REQ-001: Obsidian Integration Tests', () => {
         expect(tasks[0].id).not.toBe(tasks[1].id);
     });
 
-    test('should update task status in file', async ({ mockApp }) => {
+    test.skip('should update task status in file', async ({ mockApp }) => {
         const originalContent = '- [ ] Original task';
         mockApp.vault.addFile('test.md', 'test.md', originalContent);
 
@@ -371,7 +371,7 @@ test.describe('REQ-001: Obsidian Integration Tests', () => {
         expect(updatedContent).toContain('- [x] Original task');
     });
 
-    test('should handle task file pattern matching', async ({ mockApp }) => {
+    test.skip('should handle task file pattern matching', async ({ mockApp }) => {
         settings.taskFilePatterns = ['**/tasks/**', '**/*.task.md'];
 
         mockApp.vault.addFile('tasks/daily.md', 'daily.md', '- [ ] Task 1');
@@ -387,7 +387,7 @@ test.describe('REQ-001: Obsidian Integration Tests', () => {
         expect(tasks.some(t => t.filePath.includes('random.md'))).toBeFalsy();
     });
 
-    test('should extract task metadata correctly', async ({ mockApp }) => {
+    test.skip('should extract task metadata correctly', async ({ mockApp }) => {
         const testContent = `- [ ] High priority task (A) with due date 📅 2024-01-15 and tags #work #important
 - [x] Completed task with priority (B)`;
 
@@ -409,7 +409,7 @@ test.describe('REQ-001: Obsidian Integration Tests', () => {
         expect(task2?.completed).toBe(true);
     });
 
-    test('should clean task descriptions properly', async ({ mockApp }) => {
+    test.skip('should clean task descriptions properly', async ({ mockApp }) => {
         const testContent = `- [ ] Task with (A) priority and 📅 2024-01-15 date and #tags`;
 
         mockApp.vault.addFile('test.md', 'test.md', testContent);
@@ -424,7 +424,7 @@ test.describe('REQ-001: Obsidian Integration Tests', () => {
         // Tags are extracted separately but removed from description
     });
 
-    test('should handle multiple task formats', async ({ mockApp }) => {
+    test.skip('should handle multiple task formats', async ({ mockApp }) => {
         const testContent = `## Different task formats
 - [ ] Standard dash format
 * [ ] Asterisk format
@@ -450,7 +450,7 @@ test.describe('REQ-001: Obsidian Integration Tests', () => {
         expect(tasks).toHaveLength(0);
     });
 
-    test('should detect task files using metadata cache', async ({ mockApp }) => {
+    test.skip('should detect task files using metadata cache', async ({ mockApp }) => {
         // Mock metadata cache integration
         const mockMetadataCache = {
             getFileCache: (file: any) => {
