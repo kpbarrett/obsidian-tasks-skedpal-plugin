@@ -5,7 +5,7 @@
  * to enable testing in CI/CD environments.
  */
 
-import { MockApp, MockTFile, MockVault, MockNotice, MockPlugin, MockPluginSettingTab, normalizePath } from './obsidian-mocks';
+import { MockApp, MockTFile, MockVault, MockNotice, MockPlugin, MockPluginSettingTab, MockMetadataCache, normalizePath } from './obsidian-mocks';
 
 // Global setup function for Playwright
 export default async function globalSetup() {
@@ -44,5 +44,5 @@ export const test = baseTest.extend({
 });
 
 // Export mock utilities for use in individual test files
-export { MockApp, MockTFile, MockVault, MockNotice, MockPlugin, MockPluginSettingTab, normalizePath };
+export { MockApp, MockTFile, MockVault, MockNotice, MockPlugin, MockPluginSettingTab, MockMetadataCache, normalizePath };
 export { expect } from '@playwright/test';

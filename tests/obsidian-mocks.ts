@@ -61,6 +61,9 @@ export class MockVault {
         this.fileContents.set(path, content);
         this.fileModificationTimes.set(path, Date.now());
         
+        // Generate metadata cache for the file
+        this.generateMetadataCache(file, content);
+        
         return file;
     }
 
@@ -71,6 +74,9 @@ export class MockVault {
     async modify(file: MockTFile, content: string): Promise<void> {
         this.fileContents.set(file.path, content);
         this.fileModificationTimes.set(file.path, Date.now());
+        
+        // Regenerate metadata cache for the file
+        this.generateMetadataCache(file, content);
     }
 
     async delete(file: MockTFile): Promise<void> {
@@ -101,6 +107,53 @@ export class MockVault {
         const handlers = this.eventHandlers.get(event) || [];
         handlers.forEach(handler => handler(...args));
     }
+
+    /**
+     * Generates metadata cache for a file based on its content
+     */
+    private generateMetadataCache(file: MockTFile, content: string): void {
+        if (file.extension !== 'md') {
+            return;
+        }
+
+        const lines = content.split('\n');
+        const listItems: any[] = [];
+
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            // Match Obsidian task patterns: - [ ] task description or - [x] completed task
+            const taskRegex = /^\s*[-*]\s*\[(.)\]\s*(.+)$/;
+            const taskMatch = line.match(taskRegex);
+            
+            if (taskMatch) {
+                const statusChar = taskMatch[1].toLowerCase();
+                const description = taskMatch[2].trim();
+                const completed = statusChar === 'x';
+
+                listItems.push({
+                    task: statusChar, // ' ' for incomplete, 'x' for completed
+                    text: description,
+                    position: { start: { line: i } },
+                    completed: completed
+                });
+                console.log(`[METADATA_CACHE] Found task: ${line}`);
+            } else {
+                console.log(`[METADATA_CACHE] No task match for: ${line}`);
+            }
+        }
+
+        // Set the metadata cache for this file
+        const app = (this as any).app; // Access the app instance if available
+        if (app && app.metadataCache) {
+            const cacheData = {
+                listItems: listItems.length > 0 ? listItems : undefined
+            };
+            app.metadataCache.setFileCache(file.path, cacheData);
+            console.log(`[METADATA_CACHE] Generated cache for ${file.path} with ${listItems.length} list items`);
+        } else {
+            console.log(`[METADATA_CACHE] No app or metadataCache available for ${file.path}`);
+        }
+    }
 }
 
 // Mock Notice class
@@ -121,11 +174,37 @@ export class MockNotice {
     }
 }
 
+// Mock MetadataCache class
+export class MockMetadataCache {
+    private fileCache: Map<string, any> = new Map();
+
+    getFileCache(file: any): any {
+        return this.fileCache.get(file.path) || null;
+    }
+
+    setFileCache(filePath: string, cacheData: any): void {
+        this.fileCache.set(filePath, cacheData);
+    }
+
+    clearFileCache(filePath: string): void {
+        this.fileCache.delete(filePath);
+    }
+
+    clearAllCache(): void {
+        this.fileCache.clear();
+    }
+
+    on(event: string, callback: Function): void {
+        // Simple event handler for metadata cache events
+        console.log(`[METADATA_CACHE] Event handler registered for: ${event}`);
+    }
+}
+
 // Mock App class
 export class MockApp {
     vault: MockVault;
     workspace: any;
-    metadataCache: any;
+    metadataCache: MockMetadataCache;
 
     constructor() {
         this.vault = new MockVault();
@@ -133,10 +212,10 @@ export class MockApp {
             getActiveFile: () => null,
             on: () => ({})
         };
-        this.metadataCache = {
-            getFileCache: () => null,
-            on: () => ({})
-        };
+        this.metadataCache = new MockMetadataCache();
+        
+        // Set up the relationship between vault and app
+        (this.vault as any).app = this;
     }
 
     // Mock plugin management
