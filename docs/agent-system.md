@@ -17,11 +17,11 @@ The agent system implements a sophisticated workflow for processing jobs using s
    - Supports both explicit and automatic agent assignment
 
 3. **Specialized Agents**
-   - Developer: Feature implementation and bug fixes
+   - Developer: Feature implementation, bug fixes, and unit/integration tests
    - Tester: Test execution and result recording
    - Engineer: Test result analysis and job creation
    - General: Miscellaneous coordination jobs
-   - Test Author: Creates test specifications
+   - Test Author: E2E testing, test framework, regression suites, and test infrastructure
 
 4. **Reporting System** (`ops/reports/`)
    - Dated directories for organized reporting

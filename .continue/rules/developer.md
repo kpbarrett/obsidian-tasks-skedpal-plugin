@@ -13,8 +13,16 @@ description: Minimal developer rules for GitFlow + Issues.
 - Verify build passes:
   - `npx tsc --noEmit --skipLibCheck`
   - `npm run build`
-- Add tests relevant to the change.
-  - If a test needs to be updated, add an Issue for the Test Author.
+- **Test Implementation Responsibility:**
+  - Write unit tests for all new functionality
+  - Write integration tests for feature interactions
+  - Use test-driven development (TDD) when practical
+  - Ensure test coverage is comprehensive for your changes
+- **Escalation to Test Author:**
+  - If you discover the need for new test framework libraries or dependencies
+  - If you need E2E tests that span multiple features
+  - If you identify gaps in regression test coverage
+  - Create a GitHub Issue with label `test-framework` and assign to Test Author
 - Open a PR targeting `development` and link the Issue (`Closes #<issue>`).
 - Update Issue label to `status: in progress`; do not self-merge.
   - Note: Self-merging is forbidden, even if permissions allow it.

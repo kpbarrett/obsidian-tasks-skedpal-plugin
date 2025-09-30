@@ -6,82 +6,107 @@ const path = require('path');
 function processTestAuthorJob(job) {
     console.log('Test Author processing job:', job.title);
 
-    // Test Author handles test creation jobs
-    if (job.type === 'create-tests') {
-        console.log('Creating tests for requirement:', job.requirement);
-        console.log('Feature description:', job.description);
+    // Test Author focuses on framework and E2E testing
+    if (job.type === 'create-e2e-tests') {
+        console.log('Creating E2E tests for workflow:', job.workflow);
+        console.log('Scope:', job.scope);
 
-        // Test creation logic would go here
-        // This would analyze the requirement and generate appropriate test cases
-        const testCases = generateTestCases(job.requirement, job.description);
-
-        // Save generated tests
-        const testsDir = path.join(process.cwd(), 'ops/reports/generated-tests');
-        if (!fs.existsSync(testsDir)) {
-            fs.mkdirSync(testsDir, { recursive: true });
-        }
-
-        const testFile = path.join(testsDir, `${job.id}-tests.json`);
-        fs.writeFileSync(testFile, JSON.stringify({
-            jobId: job.id,
-            requirement: job.requirement,
-            testCases: testCases,
-            timestamp: new Date().toISOString()
-        }, null, 2));
-
-        // Create follow-up test execution job
-        const testJobDir = path.join(process.cwd(), 'ops/jobs/inbox');
-        const testJob = {
-            id: `test-${Date.now()}`,
-            type: 'run-test',
-            title: `Execute tests for: ${job.requirement}`,
-            test: job.id,
-            priority: job.priority || 'normal',
-            timestamp: new Date().toISOString(),
-            agent: 'tester'
-        };
-
-        const testJobFile = path.join(testJobDir, `${testJob.id}.json`);
-        fs.writeFileSync(testJobFile, JSON.stringify(testJob, null, 2));
+        // E2E test creation logic
+        const testCases = generateE2ETestCases(job.workflow, job.scope);
 
         return {
             success: true,
-            message: `Tests created for requirement: ${job.requirement}`,
+            message: `E2E tests created for workflow: ${job.workflow}`,
             testCases: testCases.length,
-            followUpJob: testJob.id
+            type: 'e2e'
+        };
+    } else if (job.type === 'test-framework-enhancement') {
+        console.log('Enhancing test framework for:', job.enhancement);
+        console.log('Reason:', job.reason);
+
+        // Test framework enhancement logic
+        const frameworkUpdates = enhanceTestFramework(job.enhancement, job.reason);
+
+        return {
+            success: true,
+            message: `Test framework enhanced for: ${job.enhancement}`,
+            updates: frameworkUpdates
+        };
+    } else if (job.type === 'create-regression-suite') {
+        console.log('Creating regression test suite for:', job.component);
+        
+        // Regression suite creation
+        const regressionTests = createRegressionSuite(job.component);
+
+        return {
+            success: true,
+            message: `Regression suite created for: ${job.component}`,
+            tests: regressionTests.length
         };
     }
 
     return { success: false, message: 'Unknown job type for Test Author' };
 }
 
-function generateTestCases(requirement, description) {
-    // This is a placeholder for actual test generation logic
-    // In a real implementation, this would analyze the requirement
-    // and generate appropriate unit tests, integration tests, etc.
-
+function generateE2ETestCases(workflow, scope) {
+    // Generate E2E test cases for complex workflows
     const testCases = [
         {
-            type: 'unit',
-            description: `Test ${requirement} functionality`,
-            code: `// Unit test for ${requirement}`,
-            expected: 'Function should return expected result'
+            type: 'e2e',
+            description: `Complete E2E test for ${workflow}`,
+            scope: scope,
+            steps: `// E2E test steps for ${workflow}`,
+            validation: 'End-to-end workflow validation'
         },
         {
-            type: 'integration',
-            description: `Test ${requirement} integration`,
-            code: `// Integration test for ${requirement}`,
-            expected: 'Components should work together correctly'
+            type: 'performance',
+            description: `Performance test for ${workflow}`,
+            scope: scope,
+            steps: `// Performance testing steps`,
+            validation: 'Performance metrics and thresholds'
         },
         {
-            type: 'edge-case',
-            description: `Test ${requirement} edge cases`,
-            code: `// Edge case test for ${requirement}`,
-            expected: 'Should handle edge cases gracefully'
+            type: 'cross-browser',
+            description: `Cross-browser test for ${workflow}`,
+            scope: scope,
+            steps: `// Cross-browser testing steps`,
+            validation: 'Consistent behavior across browsers'
         }
     ];
 
     return testCases;
+}
+
+function enhanceTestFramework(enhancement, reason) {
+    // Framework enhancement logic
+    return {
+        enhancement: enhancement,
+        reason: reason,
+        actions: [
+            'Add new test dependencies',
+            'Update test configuration',
+            'Create test utilities',
+            'Optimize test execution'
+        ]
+    };
+}
+
+function createRegressionSuite(component) {
+    // Regression suite creation
+    return [
+        {
+            type: 'regression',
+            component: component,
+            description: `Regression test for ${component}`,
+            priority: 'high'
+        },
+        {
+            type: 'regression',
+            component: component,
+            description: `Edge case regression for ${component}`,
+            priority: 'medium'
+        }
+    ];
 }
 
 // Export for testing
