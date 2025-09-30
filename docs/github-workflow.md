@@ -57,6 +57,7 @@ This document defines the workflow for issue assignment, priority management, an
 - `role: test-author` - E2E testing, test framework, regression suites
 - `role: engineer` - Releases, branch management, workflow coordination
 - `role: general` - Coordination, monitoring, defaults
+- `role: project-lead` - Strategic guidance, conflict resolution, process exceptions
 
 #### Label Constraints:
 - **Single Priority**: Only one priority label allowed per issue
@@ -84,7 +85,30 @@ This document defines the workflow for issue assignment, priority management, an
 - No other role or priority labels can be added by non-Engineer roles
 - When escalating, remove any existing role label and add `role: engineer` label
 
-### 5. Ownership Model
+### 6. Project Lead Escalation
+
+#### When to Escalate to Project Lead:
+- Unclear requirements or acceptance criteria
+- Conflicting priorities that need resolution
+- Process exceptions or edge cases not covered by workflow
+- Resource allocation decisions needed
+- Strategic direction questions
+
+#### Project Lead Escalation Procedure:
+1. **Engineer**: Add comment explaining the unclear situation and specific guidance needed
+2. **Engineer**: Assign issue to Project Lead (GitHub user)
+3. **Engineer**: Remove existing role label and add `role: project-lead` label
+4. **Project Lead**: Review and provide clear guidance/resolution
+5. **Project Lead**: Update labels and reassign to appropriate role
+
+#### Project Lead Responsibilities:
+- Provide clear guidance on unclear situations
+- Resolve priority conflicts
+- Make strategic decisions
+- Approve process exceptions
+- Ensure project alignment with goals
+
+### 7. Ownership Model
 
 #### Assigned Issues:
 - **Assignee** owns the issue
@@ -113,11 +137,18 @@ graph TD
     D --> I{Work Progress}
     I -->|Complete| J[Close Issue]
     I -->|Need Reassignment| K[Escalate to Engineer]
+    I -->|Unclear Situation| L[Escalate to Project Lead]
     
-    K --> L[Add Comment]
-    K --> M[Assign to Engineer]
-    K --> N[Remove role label, add role: engineer]
-    N --> E
+    K --> M[Add Comment]
+    K --> N[Assign to Engineer]
+    K --> O[Remove role label, add role: engineer]
+    O --> E
+    
+    L --> P[Add Comment]
+    L --> Q[Assign to Project Lead]
+    L --> R[Remove role label, add role: project-lead]
+    R --> S[Project Lead Provides Guidance]
+    S --> E
     
     style C fill:#fff9c4
     style E fill:#fff9c4
@@ -125,9 +156,14 @@ graph TD
     style G fill:#fff9c4
     style H fill:#fff9c4
     style K fill:#ffcdd2
-    style L fill:#ffcdd2
     style M fill:#ffcdd2
     style N fill:#ffcdd2
+    style O fill:#ffcdd2
+    style L fill:#e1bee7
+    style P fill:#e1bee7
+    style Q fill:#e1bee7
+    style R fill:#e1bee7
+    style S fill:#e1bee7
 ```
 
 ## Role-Specific Guidelines
@@ -172,6 +208,14 @@ graph TD
 - Provides default behavior when specific roles are unavailable
 - **DO NOT** modify priority or role labels
 - Escalate issues requiring reassignment to Engineer
+
+### Project Lead (`role: project-lead`)
+- Provides strategic guidance and direction
+- Resolves priority conflicts and resource allocation
+- Makes decisions on process exceptions
+- Ensures project alignment with overall goals
+- Reviews and approves escalations requiring human judgment
+- Updates labels and reassigns issues after providing guidance
 
 ## Status Tracking
 
@@ -231,6 +275,14 @@ Title: Prepare v1.1.0 release
 Adds: priority: high
 Adds: role: engineer
 Assigns to Engineer role
+```
+
+### Project Lead Escalation Example
+```
+Engineer: Requirements unclear for feature implementation
+Action: Add comment explaining specific guidance needed
+Action: Assign issue to Project Lead
+Action: Remove current role label, add role: project-lead
 ```
 
 ## GitFlow Integration
