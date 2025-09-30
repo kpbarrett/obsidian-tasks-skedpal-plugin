@@ -8,6 +8,9 @@ description: Minimal rules for integration, releases, and traceability.
 # Engineer Rules
 
 - Triage Issues, ensure priority/criteria, and enforce branch protections.
+- **Assign priority and role labels** to all new unassigned issues.
+- **Handle escalations** and reassignments from other roles.
+- **Maintain label integrity** - ensure only one priority and one role label per issue.
 - Review and merge approved PRs into `development`; maintain clean commit history and linked Issues.
 - Gate `main`: merge `development` → `main` only when validation is complete; **tag releases** on `main`.
 - Ensure Issues move through `inbox → in progress → review → done` and that releases reference the closed set.

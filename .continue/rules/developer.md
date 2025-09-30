@@ -8,6 +8,9 @@ description: Minimal developer rules for GitFlow + Issues.
 # Developer Rules
 
 - Start from a GitHub Issue; branch from `development` as `dev/<issue#>-short-slug`.
+- **DO NOT** add priority or role labels to new issues.
+- **Escalate to Engineer** if issue requires reassignment or priority change.
+- **Only add `role: engineer` label** when escalating issues for reassignment.
 - Work only on `dev/X`. Do not push to `development` or `main`.
 - Keep changes small; reference the Issue in commits.
 - Verify build passes:

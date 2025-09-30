@@ -7,6 +7,10 @@ description: Minimal rules for planning/writing tests and integrating to dev.
 
 # Test Author Rules
 
+- **DO NOT** add priority or role labels to new issues.
+- **Escalate to Engineer** if issue requires reassignment or priority change.
+- **Only add `role: engineer` label** when escalating issues for reassignment.
+
 - **Primary Focus Areas:**
   - End-to-end (E2E) testing across multiple features
   - Regression test suites and maintenance

@@ -17,6 +17,11 @@ description: Global rules for GitFlow + GitHub Issues; minimal but enforceable.
   - `role: test-author` - Test creation, test design, test planning
   - `role: engineer` - Test analysis, job generation, releases
   - `role: general` - Coordination, monitoring, defaults
+- **Issue Assignment Workflow:**
+  - Only Engineers can assign priority and role labels to new issues
+  - Other roles must leave new issues unassigned and without labels
+  - Each issue can have at most one priority and one role label
+  - Escalation: assign to Engineer with `role: engineer` label for reassignment
 - **GitFlow branches:**
   - `main`: releases only (tagged by Engineers).
   - `development`: integration branch for merged bugfixes/enhancements.
