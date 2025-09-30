@@ -1,0 +1,12 @@
+name: Agentic Development - Claude 4 Sonnet Thinking
+version: 1.0.0
+schema: v1
+models:
+  - name: Claude 4 Sonnet Thinking
+    provider: anthropic
+    model: claude-sonnet-4-20250514
+    apiKey: ${{ secrets.ANTHROPIC_API_KEY }}
+    requestOptions:
+      timeout: 300000
+    defaultCompletionsOptions:
+      temperature: 0.0

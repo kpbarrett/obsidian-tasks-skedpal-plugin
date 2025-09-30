@@ -1,0 +1,13 @@
+name: Agentic Development Serena MCP Server
+version: 1.0.0
+schema: v1
+mcpServers:
+  - name: Serena
+    command: /usr/local/bin/uvx
+    args:
+      - "--from"
+      - "git+https://github.com/oraios/serena"
+      - "serena"
+      - "start-mcp-server"
+      - "--context"
+      - "oaicompat-agent"

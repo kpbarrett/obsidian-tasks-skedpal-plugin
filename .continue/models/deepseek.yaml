@@ -1,0 +1,12 @@
+name: Agentic Development - DeepSeek
+version: 1.0.0
+schema: v1
+models:
+  - name: DeepSeek Chat
+    provider: deepseek
+    model: deepseek-chat
+    apiKey: ${{ secrets.DEEPSEEK_API_KEY }}
+    requestOptions:
+      timeout: 300000
+    defaultCompletionsOptions:
+      temperature: 0.0

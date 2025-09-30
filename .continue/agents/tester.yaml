@@ -1,0 +1,20 @@
+name: Tester Agent
+version: 1.0.0
+schema: v1
+models:
+  - uses: ../models/deepseek.yaml
+  - uses: ../models/gpt-5-codex.yaml
+  - uses: ../models/gpt-4o.yaml
+mcpServers:
+  - uses: ../mcpServers/serena.yaml
+  - uses: ../mcpServers/github.yaml
+  - uses: ../mcpServers/playwright.yaml
+rules:
+  - uses: ../rules/tester.md
+  - uses: ../rules/general.md
+  - uses: continuedev/solid-rules
+prompts:
+  - uses: continuedev/check-code-quality
+  - uses: continuedev/check-srp
+  - uses: continuedev/check-solid
+  - uses: continuedev/small-improvement

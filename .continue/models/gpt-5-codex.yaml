@@ -1,0 +1,10 @@
+name: Agentic Development - GPT-5 Codex
+version: 1.0.0
+schema: v1
+models:
+  - name: GPT-5 Codex
+    provider: openai
+    model: gpt-5-codex
+    apiKey: ${{ secrets.OPENAI_API_KEY }}
+    requestOptions:
+      timeout: 300000

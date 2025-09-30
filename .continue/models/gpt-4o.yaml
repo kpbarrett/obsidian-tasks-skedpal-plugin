@@ -1,0 +1,10 @@
+name: Agentic Development - GPT-4o
+version: 1.0.0
+schema: v1
+models:
+  - name: GPT-4o
+    provider: openai
+    model: gpt-4o
+    apiKey: ${{ secrets.OPENAI_API_KEY }}
+    requestOptions:
+      timeout: 300000
