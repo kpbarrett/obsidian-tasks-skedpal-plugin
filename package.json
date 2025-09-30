@@ -5,7 +5,7 @@
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kbarrett/obsidian-tasks-skedpal-plugin.git"
+    "url": "git+https://github.com/kpbarrett/obsidian-tasks-skedpal-plugin.git"
   },
   "keywords": [
     "Obsidian",
@@ -16,9 +16,9 @@
   "author": "Kevin Barrett <kevin.barrett@yahoo.com>",
   "license": "GPLv3",
   "bugs": {
-    "url": "https://github.com/kbarrett/obsidian-tasks-skedpal-plugin/issues"
+    "url": "https://github.com/kpbarrett/obsidian-tasks-skedpal-plugin/issues"
   },
-  "homepage": "https://github.com/kbarrett/obsidian-tasks-skedpal-plugin#readme",
+  "homepage": "https://github.com/kpbarrett/obsidian-tasks-skedpal-plugin#readme",
   "dependencies": {
     "@continuedev/cli": "^1.4.45"
   }
