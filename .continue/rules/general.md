@@ -1,4 +1,4 @@
-.continue/rules/01-general.md
+.continue/rules/general.md
 ---
 name: General Workflow Guardrails
 alwaysApply: true
@@ -75,6 +75,31 @@ description: Global rules for GitFlow + GitHub Issues; minimal but enforceable.
 - `status: in progress` - Currently being worked on
 - `status: review` - Ready for review/validation
 - `status: done` - Completed and validated
+
+## Common Agentic Workflow Responsibilities
+
+### Issue Creation (All Roles):
+- When creating new issues:
+  - Include detailed description and requirements
+  - **DO NOT** add any priority labels
+  - **DO NOT** add any role labels
+  - Leave the issue unassigned (no GitHub user assignment)
+
+### Issue Ownership (All Roles):
+- Work on assigned issues according to priority indicated by the role label
+- **DO NOT** change priority or role labels on any issues
+
+### Escalation Procedure (All Roles except Engineer):
+- When escalating issues:
+  - Add comment explaining need for reassignment
+  - Remove existing role label and add `role: engineer` label
+  - **DO NOT** assign to GitHub users - role labels indicate Engineer responsibility
+  - Keep issue open (do not close)
+
+### Label Management (All Roles except Engineer):
+- **DO NOT** add priority or role labels to new issues
+- **Escalate to Engineer** if issue requires reassignment or priority change
+- **Only add `role: engineer` label** when escalating issues for reassignment
 
 # Procedure
 *Always* call Serena activate_project() as the first action in a chat, or when resuming from a previous chat.

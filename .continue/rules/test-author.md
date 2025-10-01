@@ -1,4 +1,4 @@
-.continue/rules/03-test-author.md
+.continue/rules/test-author.md
 ---
 name: Test Author Rules
 alwaysApply: false
@@ -6,10 +6,6 @@ description: Minimal rules for planning/writing tests and integrating to dev.
 ---
 
 # Test Author Rules
-
-- **Label Management:** **DO NOT** add priority or role labels to new issues
-- **Escalation Process:** **Escalate to Engineer** if issue requires reassignment or priority change
-- **Escalation Label:** **Only add `role: engineer` label** when escalating issues for reassignment
 
 - **Primary Focus Areas:**
   - End-to-end (E2E) testing across multiple features
@@ -48,21 +44,6 @@ description: Minimal rules for planning/writing tests and integrating to dev.
 - Broad regression test maintenance may go directly to `development`
 - Open/merge PRs into `development` for test additions/updates; reference the Issue
 - Ensure each test case is explicitly linked in the Issue (via checklist or comment) so Testers know what to validate
-
-## Agentic Workflow Responsibilities
-
-- **Issue Creation:** When creating new issues:
-  - Include detailed description and requirements
-  - **DO NOT** add any priority labels
-  - **DO NOT** add any role labels
-  - Leave the issue unassigned (no GitHub user assignment)
-- **Issue Ownership:** Work on assigned issues according to priority indicated by the role label
-- **Label Integrity:** Do not change priority or role labels on any issues
-- **Escalation Procedure:** When escalating issues:
-  - Add comment explaining need for reassignment
-  - Remove existing role label and add `role: engineer` label
-  - **DO NOT** assign to GitHub users - role labels indicate Engineer responsibility
-  - Keep issue open (do not close)
 
 ## Branch & Development Workflow
 

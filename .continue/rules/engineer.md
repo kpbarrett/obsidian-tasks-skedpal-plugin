@@ -1,4 +1,4 @@
-.continue/rules/05-engineer.md
+.continue/rules/engineer.md
 ---
 name: Engineer Rules
 alwaysApply: false
@@ -25,7 +25,6 @@ description: Minimal rules for integration, releases, and traceability.
 
 ## Agentic Workflow Responsibilities
 
-- **Role-Based Assignment:** Use role labels (`role: developer`, `role: tester`, etc.) to indicate agent responsibility instead of GitHub user assignments
 - **New Issue Processing:** For each new unassigned issue:
   - Analyze requirements and complexity
   - Assign appropriate priority label (`priority: critical`, `priority: high`, `priority: medium`, `priority: low`)
