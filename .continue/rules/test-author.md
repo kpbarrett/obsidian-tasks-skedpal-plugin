@@ -29,7 +29,7 @@ description: Minimal rules for planning/writing tests and integrating to dev.
 - **Automatic Completion:** Update the GitHub Issue immediately after completing test implementation:
   - Add completion comment with test plan
   - Reference the dev branch in the comment
-  - Add `status: review` label
+  - Add `status:review` label
 - **Escalation Path:** If unable to resolve the issue, add a Comment explaining blockers and escalate to Engineer
 - **Self-Initiated Workflow:** Perform these steps without being asked:
   1. Create `dev/issue-X-description` branch
@@ -38,7 +38,7 @@ description: Minimal rules for planning/writing tests and integrating to dev.
   4. Push branch to remote
   5. Create PR from dev branch to `development`
   6. Update Issue with completion status and test plan
-  7. Add `status: review` label
+  7. Add `status:review` label
 - Derive tests from requirements and the linked Issue
 - Work in `dev/X` for new tests when test-only changes are needed
 - Broad regression test maintenance may go directly to `development`

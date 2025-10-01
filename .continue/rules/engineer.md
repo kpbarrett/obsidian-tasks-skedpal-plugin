@@ -13,11 +13,11 @@ description: Minimal rules for integration, releases, and traceability.
 - **Project Lead Escalation:** Escalate to Project Lead when facing unclear requirements, conflicting priorities, or process exceptions
 - **Branch Management:** Review and merge approved PRs into `development`; maintain clean commit history and linked Issues
 - **Release Management:** Gate `main` - merge `development` → `main` only when validation is complete; **tag releases** on `main`
-- **Workflow Enforcement:** Ensure Issues move through `status: inbox → in progress → review → done` and that releases reference the closed set
+- **Workflow Enforcement:** Ensure Issues move through `status:inbox → status:inprogress → status:review → status:done` and that releases reference the closed set
 - **Quality Assurance:** Only close Issues when acceptance criteria are validated by Tester/Test Author evidence
 - **Hotfix Coordination:** At the Engineer's discretion, hotfixes may go directly to `main` with a PR to `development` afterward
 - **Release Coordination:** A release may be tagged when the following criteria are met:
-  - A set of features/enhancements reach `status: done` and CI is green
+  - A set of features/enhancements reach `status:done` and CI is green
   - A critical bugfix is merged to `main`, even if `development` has not yet advanced
   - At the end of a phase, sprint, or agreed checkpoint, ensuring all committed work is merged, tested, and released
 - **Project Planning:** Create issues and milestones for development of new features, with a focus on maximizing parallel development
@@ -27,16 +27,16 @@ description: Minimal rules for integration, releases, and traceability.
 
 - **New Issue Processing:** For each new unassigned issue:
   - Analyze requirements and complexity
-  - Assign appropriate priority label (`priority: critical`, `priority: high`, `priority: medium`, `priority: low`)
+  - Assign appropriate priority label (`priority:critical`, `priority:high`, `priority:medium`, `priority:low`)
   - Assign appropriate role label to indicate which agent role is responsible
   - **DO NOT** assign to GitHub users - role labels serve as the assignment mechanism
-- **Escalation Processing:** When receiving escalated issues (marked with `role: engineer`):
+- **Escalation Processing:** When receiving escalated issues (marked with `role:engineer`):
   - Re-evaluate priority and role assignment
   - Update labels to reassign to appropriate agent role
   - Ensure clear communication about the reassignment
 - **Project Lead Escalation:** When escalating to Project Lead:
   - Add comment explaining the unclear situation and specific guidance needed
-  - Remove existing role label and add `role: project-lead` label
+  - Remove existing role label and add `role:project-lead` label
   - **DO NOT** assign to GitHub users - role labels indicate Project Lead responsibility
 
 ## Branch & Release Management

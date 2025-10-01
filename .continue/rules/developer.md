@@ -24,7 +24,7 @@ description: Minimal developer rules for GitFlow + Issues.
   - If you identify gaps in regression test coverage
   - Create a GitHub Issue with label `test-framework` and escalate to Test Author via Engineer
 - **Pull Request Process:** Open a PR targeting `development` and link the Issue (`Closes #<issue>`)
-- **Status Updates:** Update Issue label to `status: in progress`; do not self-merge
+- **Status Updates:** Update Issue label to `status:inprogress`; do not self-merge
   - Note: Self-merging is forbidden, even if permissions allow it
 
 ## Branch & Development Workflow

@@ -10,19 +10,19 @@ description: Global rules for GitFlow + GitHub Issues; minimal but enforceable.
 - **Requirements:** `PROJECT_REQUIREMENTS.md` is the source of truth
 - **Tracking:** Every change is tied to a **GitHub Issue** with priority and acceptance criteria
   - Do not act on changes unless they are documented in a GitHub Issue
-- **State:** use labels `status: inbox → in progress → review → done`
+- **State:** use labels `status:inbox → status:inprogress → status:review → status:done`
 - **Agentic Workflow:** This workflow is designed for AI agents without GitHub accounts. Role labels replace GitHub user assignments to indicate which agent role is responsible for the issue
 - **Role Assignment:** Use role labels instead of GitHub user assignments:
-  - `role: developer` - Feature implementation, bug fixes, unit/integration tests
-  - `role: tester` - Test execution, result recording, validation
-  - `role: test-author` - E2E testing, test framework, regression suites
-  - `role: engineer` - Releases, branch management, workflow coordination
-  - `role: project-lead` - Strategic guidance, conflict resolution, process exceptions
+  - `role:developer` - Feature implementation, bug fixes, unit/integration tests
+  - `role:tester` - Test execution, result recording, validation
+  - `role:test-author` - E2E testing, test framework, regression suites
+  - `role:engineer` - Releases, branch management, workflow coordination
+  - `role:project-lead` - Strategic guidance, conflict resolution, process exceptions
 - **Issue Assignment Workflow:**
   - Only Engineers can assign priority and role labels to new issues
   - Other roles must leave new issues unassigned and without labels
   - Each issue can have at most one priority and one role label
-  - Escalation: assign to Engineer with `role: engineer` label for reassignment
+  - Escalation: assign to Engineer with `role:engineer` label for reassignment
 - **GitFlow branches:**
   - `main`: releases only (tagged by Engineers)
   - `development`: integration branch for merged bugfixes/enhancements
@@ -46,35 +46,35 @@ description: Global rules for GitFlow + GitHub Issues; minimal but enforceable.
 
 ### Standard Escalation (All Roles except Engineer):
 - Add comment explaining need for reassignment
-- Remove existing role label and add `role: engineer` label
+- Remove existing role label and add `role:engineer` label
 - **DO NOT** assign to GitHub users - role labels indicate Engineer responsibility
 - Keep issue open (do not close)
 
 ### Project Lead Escalation (Engineer only):
 - Add comment explaining unclear situation and specific guidance needed
-- Remove existing role label and add `role: project-lead` label
+- Remove existing role label and add `role:project-lead` label
 - **DO NOT** assign to GitHub users - role labels indicate Project Lead responsibility
 
 ## Label Management
 
 ### Priority Labels
-- `priority: critical` - Must be addressed immediately
-- `priority: high` - High importance, complete within current sprint
-- `priority: medium` - Normal priority, complete within reasonable timeframe
-- `priority: low` - Low priority, can be deferred if needed
+- `priority:critical` - Must be addressed immediately
+- `priority:high` - High importance, complete within current sprint
+- `priority:medium` - Normal priority, complete within reasonable timeframe
+- `priority:low` - Low priority, can be deferred if needed
 
 ### Role Labels
-- `role: developer` - Feature implementation, bug fixes, unit/integration tests
-- `role: tester` - Test execution, result recording, validation
-- `role: test-author` - E2E testing, test framework, regression suites
-- `role: engineer` - Releases, branch management, workflow coordination
-- `role: project-lead` - Strategic guidance, conflict resolution, process exceptions
+- `role:developer` - Feature implementation, bug fixes, unit/integration tests
+- `role:tester` - Test execution, result recording, validation
+- `role:test-author` - E2E testing, test framework, regression suites
+- `role:engineer` - Releases, branch management, workflow coordination
+- `role:project-lead` - Strategic guidance, conflict resolution, process exceptions
 
 ### Status Labels
-- `status: inbox` - New issue awaiting processing
-- `status: in progress` - Currently being worked on
-- `status: review` - Ready for review/validation
-- `status: done` - Completed and validated
+- `status:inbox` - New issue awaiting processing
+- `status:inprogress` - Currently being worked on
+- `status:review` - Ready for review/validation
+- `status:done` - Completed and validated
 
 ## Common Agentic Workflow Responsibilities
 
@@ -92,14 +92,14 @@ description: Global rules for GitFlow + GitHub Issues; minimal but enforceable.
 ### Escalation Procedure (All Roles except Engineer):
 - When escalating issues:
   - Add comment explaining need for reassignment
-  - Remove existing role label and add `role: engineer` label
+  - Remove existing role label and add `role:engineer` label
   - **DO NOT** assign to GitHub users - role labels indicate Engineer responsibility
   - Keep issue open (do not close)
 
 ### Label Management (All Roles except Engineer):
 - **DO NOT** add priority or role labels to new issues
 - **Escalate to Engineer** if issue requires reassignment or priority change
-- **Only add `role: engineer` label** when escalating issues for reassignment
+- **Only add `role:engineer` label** when escalating issues for reassignment
 
 # Procedure
 *Always* call Serena activate_project() as the first action in a chat, or when resuming from a previous chat.
