@@ -5,6 +5,9 @@ alwaysApply: true
 description: Global rules for GitFlow + GitHub Issues; minimal but enforceable.
 ---
 
+# GitHub Location
+- Repository: `kpbarrett/obsidian-tasks-skedpal-plugin`
+
 # General Rules
 
 - **Requirements:** `PROJECT_REQUIREMENTS.md` is the source of truth
