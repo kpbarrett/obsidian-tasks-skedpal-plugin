@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      width: 300px;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    
+    .status {
+      padding: 8px 12px;
+      border-radius: 4px;
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+    
+    .status.connected {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    
+    .status.disconnected {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    
+    .button {
+      width: 100%;
+      padding: 8px 16px;
+      margin: 4px 0;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    .button.primary {
+      background-color: #007bff;
+      color: white;
+    }
+    
+    .button.secondary {
+      background-color: #6c757d;
+      color: white;
+    }
+    
+    .button:disabled {
+      background-color: #e9ecef;
+      color: #6c757d;
+      cursor: not-allowed;
+    }
+    
+    .info {
+      font-size: 12px;
+      color: #6c757d;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h3>Obsidian Tasks Sync</h3>
+  
+  <div id="status" class="status">
+    Checking status...
+  </div>
+  
+  <button id="syncToSkedPal" class="button primary">
+    Sync to SkedPal
+  </button>
+  
+  <button id="syncFromSkedPal" class="button secondary">
+    Sync from SkedPal
+  </button>
+  
+  <button id="authenticate" class="button secondary">
+    Authenticate
+  </button>
+  
+  <div class="info">
+    <div>Obsidian: <span id="obsidianStatus">Not connected</span></div>
+    <div>SkedPal: <span id="skedpalStatus">Not detected</span></div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
