@@ -1,0 +1,18 @@
+{
+  "name": "obsidian-tasks-skedpal-chrome-extension",
+  "version": "1.0.0",
+  "description": "Chrome extension for bidirectional synchronization between Obsidian Tasks and SkedPal",
+  "main": "dist/background.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.246",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@types/node": "^20.0.0"
+  }
+}

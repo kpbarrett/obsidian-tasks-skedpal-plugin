@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "Obsidian Tasks - SkedPal Sync",
+  "version": "1.0.0",
+  "description": "Bidirectional synchronization between Obsidian Tasks and SkedPal",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "nativeMessaging",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://*.skedpal.com/*",
+    "https://skedpal.com/*"
+  ],
+  "background": {
+    "service_worker": "dist/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://*.skedpal.com/*", "https://skedpal.com/*"],
+      "js": ["dist/content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Obsidian Tasks Sync"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["injected.js"],
+      "matches": ["https://*.skedpal.com/*", "https://skedpal.com/*"]
+    }
+  ]
+}
