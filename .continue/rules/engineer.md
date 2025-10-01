@@ -1,7 +1,7 @@
 .continue/rules/engineer.md
 ---
 name: Engineer Rules
-alwaysApply: false
+alwaysApply: true
 description: Minimal rules for integration, releases, and traceability.
 ---
 

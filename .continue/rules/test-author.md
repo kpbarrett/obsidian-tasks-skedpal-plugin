@@ -1,7 +1,7 @@
 .continue/rules/test-author.md
 ---
 name: Test Author Rules
-alwaysApply: false
+alwaysApply: true
 description: Minimal rules for planning/writing tests and integrating to dev.
 ---
 

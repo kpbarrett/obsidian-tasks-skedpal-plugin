@@ -1,7 +1,7 @@
 .continue/rules/tester.md
 ---
 name: Tester Rules
-alwaysApply: false
+alwaysApply: true
 description: Minimal rules for validating on any branch and reporting results.
 ---
 

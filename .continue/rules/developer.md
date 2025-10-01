@@ -1,7 +1,7 @@
 .continue/rules/developer.md
 ---
 name: Developer Rules
-alwaysApply: false
+alwaysApply: true
 description: Minimal developer rules for GitFlow + Issues.
 ---
 
