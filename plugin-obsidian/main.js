@@ -409,6 +409,151 @@ var TaskSyncSettingTab = class extends PluginSettingTab {
   }
 };
 
+// src/chrome-bridge.ts
+var ChromeExtensionBridge = class {
+  constructor() {
+    this.port = null;
+    this.messageHandlers = new Map();
+    this.pendingRequests = new Map();
+    this.connectionStatus = { connected: false };
+    this.reconnectAttempts = 0;
+    this.maxReconnectAttempts = 5;
+    this.reconnectDelay = 1e3;
+    this.setupMessageHandlers();
+  }
+  async connect() {
+    try {
+      if (!(chrome == null ? void 0 : chrome.runtime)) {
+        throw new Error("Chrome runtime not available");
+      }
+      this.port = chrome.runtime.connectNative("com.obsidian.tasks.skedpal");
+      this.port.onMessage.addListener((message) => {
+        this.handleIncomingMessage(message);
+      });
+      this.port.onDisconnect.addListener(() => {
+        this.handleDisconnect();
+      });
+      this.connectionStatus = {
+        connected: true,
+        lastConnected: new Date()
+      };
+      this.reconnectAttempts = 0;
+      this.reconnectDelay = 1e3;
+      console.log("Chrome extension bridge connected successfully");
+      return true;
+    } catch (error) {
+      console.error("Failed to connect to Chrome extension:", error);
+      this.connectionStatus = {
+        connected: false,
+        lastError: error.message
+      };
+      return false;
+    }
+  }
+  disconnect() {
+    if (this.port) {
+      this.port.disconnect();
+      this.port = null;
+    }
+    this.connectionStatus.connected = false;
+    this.pendingRequests.clear();
+  }
+  async sendMessage(type, data) {
+    if (!this.port || !this.connectionStatus.connected) {
+      throw new Error("Not connected to Chrome extension");
+    }
+    const correlationId = this.generateCorrelationId();
+    const message = {
+      type,
+      data,
+      correlationId
+    };
+    return new Promise((resolve, reject) => {
+      this.pendingRequests.set(correlationId, { resolve, reject });
+      setTimeout(() => {
+        if (this.pendingRequests.has(correlationId)) {
+          this.pendingRequests.delete(correlationId);
+          reject(new Error("Request timeout"));
+        }
+      }, 3e4);
+      try {
+        this.port.postMessage(message);
+      } catch (error) {
+        this.pendingRequests.delete(correlationId);
+        reject(error);
+      }
+    });
+  }
+  registerHandler(type, handler) {
+    this.messageHandlers.set(type, handler);
+  }
+  getConnectionStatus() {
+    return { ...this.connectionStatus };
+  }
+  async reconnect() {
+    this.disconnect();
+    return await this.connect();
+  }
+  setupMessageHandlers() {
+    this.registerHandler("ping", async () => ({ pong: true }));
+    this.registerHandler("status", async () => this.getConnectionStatus());
+  }
+  handleIncomingMessage(message) {
+    var _a;
+    if (message.correlationId && this.pendingRequests.has(message.correlationId)) {
+      const { resolve, reject } = this.pendingRequests.get(message.correlationId);
+      this.pendingRequests.delete(message.correlationId);
+      if (message.type === "error") {
+        reject(new Error(((_a = message.data) == null ? void 0 : _a.error) || "Unknown error"));
+      } else {
+        resolve(message.data);
+      }
+      return;
+    }
+    const handler = this.messageHandlers.get(message.type);
+    if (handler) {
+      handler(message.data).then((result) => {
+        if (message.correlationId) {
+          this.sendResponse(message.correlationId, { success: true, data: result });
+        }
+      }).catch((error) => {
+        if (message.correlationId) {
+          this.sendResponse(message.correlationId, { success: false, error: error.message });
+        }
+      });
+    }
+  }
+  handleDisconnect() {
+    this.port = null;
+    this.connectionStatus.connected = false;
+    this.connectionStatus.lastError = "Disconnected from Chrome extension";
+    for (const [correlationId, { reject }] of this.pendingRequests) {
+      reject(new Error("Connection lost"));
+    }
+    this.pendingRequests.clear();
+    if (this.reconnectAttempts < this.maxReconnectAttempts) {
+      setTimeout(() => {
+        this.reconnectAttempts++;
+        this.reconnectDelay *= 2;
+        this.connect();
+      }, this.reconnectDelay);
+    }
+  }
+  sendResponse(correlationId, response) {
+    if (this.port && this.connectionStatus.connected) {
+      const message = {
+        type: "response",
+        data: response,
+        correlationId
+      };
+      this.port.postMessage(message);
+    }
+  }
+  generateCorrelationId() {
+    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  }
+};
+
 // src/main.ts
 var Plugin;
 var App3;
@@ -435,6 +580,8 @@ var TaskSyncPlugin = class extends Plugin {
     console.log("Loading Obsidian Tasks - SkedPal Sync plugin");
     await this.loadSettings();
     this.taskManager = new TaskManager(this.app, this.settings);
+    this.chromeBridge = new ChromeExtensionBridge();
+    this.initializeChromeBridge();
     this.addSettingTab(new TaskSyncSettingTab(this.app, this));
     this.addCommand({
       id: "sync-tasks-to-skedpal",
@@ -450,6 +597,20 @@ var TaskSyncPlugin = class extends Plugin {
         this.syncFromSkedPal();
       }
     });
+    this.addCommand({
+      id: "check-chrome-connection",
+      name: "Check Chrome Extension Connection",
+      callback: () => {
+        this.checkChromeConnection();
+      }
+    });
+    this.addCommand({
+      id: "reconnect-chrome-extension",
+      name: "Reconnect to Chrome Extension",
+      callback: () => {
+        this.reconnectChromeExtension();
+      }
+    });
     this.registerEvent(this.app.vault.on("modify", (file) => {
       if (this.isTaskFile(file)) {
         this.handleTaskChange(file);
@@ -459,6 +620,9 @@ var TaskSyncPlugin = class extends Plugin {
   }
   onunload() {
     console.log("Unloading Obsidian Tasks - SkedPal Sync plugin");
+    if (this.chromeBridge) {
+      this.chromeBridge.disconnect();
+    }
   }
   async loadSettings() {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
@@ -503,6 +667,62 @@ var TaskSyncPlugin = class extends Plugin {
     } catch (error) {
       console.error("Error syncing from SkedPal:", error);
       new Notice2("Error syncing from SkedPal: " + error.message);
+    }
+  }
+  async initializeChromeBridge() {
+    try {
+      const connected = await this.chromeBridge.connect();
+      if (connected) {
+        console.log("Chrome extension bridge initialized successfully");
+        this.chromeBridge.registerHandler("sync-tasks", async (data) => {
+          return await this.handleTaskSync(data);
+        });
+        this.chromeBridge.registerHandler("get-tasks", async () => {
+          return await this.taskManager.collectTasks();
+        });
+      } else {
+        console.warn("Chrome extension bridge initialization failed");
+      }
+    } catch (error) {
+      console.error("Error initializing Chrome extension bridge:", error);
+    }
+  }
+  async checkChromeConnection() {
+    const status = this.chromeBridge.getConnectionStatus();
+    if (status.connected) {
+      new Notice2("Chrome extension is connected");
+    } else {
+      new Notice2(`Chrome extension is not connected: ${status.lastError || "Unknown error"}`);
+    }
+  }
+  async reconnectChromeExtension() {
+    try {
+      new Notice2("Attempting to reconnect to Chrome extension...");
+      const connected = await this.chromeBridge.reconnect();
+      if (connected) {
+        new Notice2("Successfully reconnected to Chrome extension");
+      } else {
+        new Notice2("Failed to reconnect to Chrome extension");
+      }
+    } catch (error) {
+      console.error("Error reconnecting to Chrome extension:", error);
+      new Notice2("Error reconnecting to Chrome extension: " + error.message);
+    }
+  }
+  async handleTaskSync(data) {
+    try {
+      const tasks = await this.taskManager.collectTasks();
+      return {
+        success: true,
+        tasks,
+        count: tasks.length
+      };
+    } catch (error) {
+      console.error("Error handling task sync:", error);
+      return {
+        success: false,
+        error: error.message
+      };
     }
   }
 };

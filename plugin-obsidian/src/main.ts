@@ -31,10 +31,12 @@ try {
 import { TaskManager } from './task-manager';
 import { TaskSyncSettings, DEFAULT_SETTINGS } from './settings';
 import { TaskSyncSettingTab } from './settings-tab';
+import { ChromeExtensionBridge } from './chrome-bridge';
 
 export default class TaskSyncPlugin extends Plugin {
     settings: TaskSyncSettings;
     taskManager: TaskManager;
+    chromeBridge: ChromeExtensionBridge;
 
     async onload() {
         console.log('Loading Obsidian Tasks - SkedPal Sync plugin');
@@ -44,6 +46,10 @@ export default class TaskSyncPlugin extends Plugin {
 
         // Initialize task manager
         this.taskManager = new TaskManager(this.app, this.settings);
+        
+        // Initialize Chrome extension bridge
+        this.chromeBridge = new ChromeExtensionBridge();
+        this.initializeChromeBridge();
         
         // Register settings tab
         this.addSettingTab(new TaskSyncSettingTab(this.app, this));
@@ -65,6 +71,23 @@ export default class TaskSyncPlugin extends Plugin {
             }
         });
 
+        // Chrome extension connection commands
+        this.addCommand({
+            id: 'check-chrome-connection',
+            name: 'Check Chrome Extension Connection',
+            callback: () => {
+                this.checkChromeConnection();
+            }
+        });
+
+        this.addCommand({
+            id: 'reconnect-chrome-extension',
+            name: 'Reconnect to Chrome Extension',
+            callback: () => {
+                this.reconnectChromeExtension();
+            }
+        });
+
         // Register event handlers for task changes
         this.registerEvent(
             this.app.vault.on('modify', (file: TFileType) => {
@@ -79,6 +102,9 @@ export default class TaskSyncPlugin extends Plugin {
 
     onunload() {
         console.log('Unloading Obsidian Tasks - SkedPal Sync plugin');
+        if (this.chromeBridge) {
+            this.chromeBridge.disconnect();
+        }
     }
 
     async loadSettings() {
@@ -138,6 +164,69 @@ export default class TaskSyncPlugin extends Plugin {
         } catch (error) {
             console.error('Error syncing from SkedPal:', error);
             new Notice('Error syncing from SkedPal: ' + error.message);
+        }
+    }
+
+    private async initializeChromeBridge(): Promise<void> {
+        try {
+            const connected = await this.chromeBridge.connect();
+            if (connected) {
+                console.log('Chrome extension bridge initialized successfully');
+                
+                // Register message handlers
+                this.chromeBridge.registerHandler('sync-tasks', async (data) => {
+                    return await this.handleTaskSync(data);
+                });
+
+                this.chromeBridge.registerHandler('get-tasks', async () => {
+                    return await this.taskManager.collectTasks();
+                });
+            } else {
+                console.warn('Chrome extension bridge initialization failed');
+            }
+        } catch (error) {
+            console.error('Error initializing Chrome extension bridge:', error);
+        }
+    }
+
+    private async checkChromeConnection(): Promise<void> {
+        const status = this.chromeBridge.getConnectionStatus();
+        if (status.connected) {
+            new Notice('Chrome extension is connected');
+        } else {
+            new Notice(`Chrome extension is not connected: ${status.lastError || 'Unknown error'}`);
+        }
+    }
+
+    private async reconnectChromeExtension(): Promise<void> {
+        try {
+            new Notice('Attempting to reconnect to Chrome extension...');
+            const connected = await this.chromeBridge.reconnect();
+            if (connected) {
+                new Notice('Successfully reconnected to Chrome extension');
+            } else {
+                new Notice('Failed to reconnect to Chrome extension');
+            }
+        } catch (error) {
+            console.error('Error reconnecting to Chrome extension:', error);
+            new Notice('Error reconnecting to Chrome extension: ' + error.message);
+        }
+    }
+
+    private async handleTaskSync(data: any): Promise<any> {
+        try {
+            const tasks = await this.taskManager.collectTasks();
+            return {
+                success: true,
+                tasks: tasks,
+                count: tasks.length
+            };
+        } catch (error) {
+            console.error('Error handling task sync:', error);
+            return {
+                success: false,
+                error: error.message
+            };
         }
     }
 }
