@@ -31,10 +31,12 @@ try {
 import { TaskManager } from './task-manager';
 import { TaskSyncSettings, DEFAULT_SETTINGS } from './settings';
 import { TaskSyncSettingTab } from './settings-tab';
+import { SynchronizationEngine } from './sync-engine';
 
 export default class TaskSyncPlugin extends Plugin {
     settings: TaskSyncSettings;
     taskManager: TaskManager;
+    syncEngine: SynchronizationEngine;
 
     async onload() {
         console.log('Loading Obsidian Tasks - SkedPal Sync plugin');
@@ -44,6 +46,9 @@ export default class TaskSyncPlugin extends Plugin {
 
         // Initialize task manager
         this.taskManager = new TaskManager(this.app, this.settings);
+        
+        // Initialize synchronization engine
+        this.syncEngine = new SynchronizationEngine(this.settings);
         
         // Register settings tab
         this.addSettingTab(new TaskSyncSettingTab(this.app, this));
@@ -62,6 +67,14 @@ export default class TaskSyncPlugin extends Plugin {
             name: 'Sync tasks from SkedPal',
             callback: () => {
                 this.syncFromSkedPal();
+            }
+        });
+
+        this.addCommand({
+            id: 'get-sync-status',
+            name: 'Get synchronization status',
+            callback: () => {
+                this.showSyncStatus();
             }
         });
 
@@ -124,7 +137,18 @@ export default class TaskSyncPlugin extends Plugin {
         try {
             const tasks = await this.taskManager.collectTasks();
             new Notice(`Found ${tasks.length} tasks to sync`);
-            // TODO: Implement SkedPal sync logic
+            
+            // TODO: Get SkedPal tasks (placeholder for now)
+            const skedpalTasks: any[] = [];
+            
+            // Use synchronization engine for bidirectional sync
+            const syncStatus = await this.syncEngine.synchronizeTasks(tasks, skedpalTasks);
+            
+            if (syncStatus.lastError) {
+                new Notice(`Sync completed with errors: ${syncStatus.lastError}`);
+            } else {
+                new Notice(`Sync completed: ${syncStatus.tasksSynced} tasks synced, ${syncStatus.conflictsResolved} conflicts resolved`);
+            }
         } catch (error) {
             console.error('Error syncing tasks:', error);
             new Notice('Error syncing tasks: ' + error.message);
@@ -133,11 +157,35 @@ export default class TaskSyncPlugin extends Plugin {
 
     private async syncFromSkedPal() {
         try {
-            // TODO: Implement SkedPal import logic
-            new Notice('Syncing tasks from SkedPal...');
+            // TODO: Get SkedPal tasks (placeholder for now)
+            const skedpalTasks: any[] = [];
+            
+            // Get current Obsidian tasks for comparison
+            const obsidianTasks = await this.taskManager.collectTasks();
+            
+            // Use synchronization engine for one-way sync from SkedPal
+            const syncStatus = await this.syncEngine.synchronizeTasks(obsidianTasks, skedpalTasks);
+            
+            if (syncStatus.lastError) {
+                new Notice(`Sync from SkedPal completed with errors: ${syncStatus.lastError}`);
+            } else {
+                new Notice(`Sync from SkedPal completed: ${syncStatus.tasksSynced} tasks synced`);
+            }
         } catch (error) {
             console.error('Error syncing from SkedPal:', error);
             new Notice('Error syncing from SkedPal: ' + error.message);
         }
+    }
+
+    private showSyncStatus() {
+        const status = this.syncEngine.getStatus();
+        const statusMessage = `Synchronization Status:
+Last Sync: ${status.lastSyncTime.toLocaleString()}
+In Progress: ${status.syncInProgress ? 'Yes' : 'No'}
+Tasks Synced: ${status.tasksSynced}
+Conflicts Resolved: ${status.conflictsResolved}
+Last Error: ${status.lastError || 'None'}`;
+        
+        new Notice(statusMessage);
     }
 }
