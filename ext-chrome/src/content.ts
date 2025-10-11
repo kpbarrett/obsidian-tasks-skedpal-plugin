@@ -1,14 +1,5 @@
 // Content script for SkedPal integration
-
-interface TaskData {
-  id: string;
-  title: string;
-  description?: string;
-  dueDate?: string;
-  priority?: 'high' | 'medium' | 'low';
-  status?: 'todo' | 'in-progress' | 'completed';
-  tags?: string[];
-}
+import { SkedPalTaskExtractor, TaskData, TaskExtractionResult } from './task-extractor';
 
 interface SyncMessage {
   type: 'extract_tasks' | 'inject_tasks' | 'status_update' | 'auth_required';
@@ -19,6 +10,7 @@ interface SyncMessage {
 class SkedPalIntegration {
   private isReady: boolean = false;
   private taskElements: Element[] = [];
+  private taskExtractor: SkedPalTaskExtractor;
 
   constructor() {
     this.initialize();
