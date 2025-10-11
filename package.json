@@ -19,7 +19,5 @@
     "url": "https://github.com/kpbarrett/obsidian-tasks-skedpal-plugin/issues"
   },
   "homepage": "https://github.com/kpbarrett/obsidian-tasks-skedpal-plugin#readme",
-  "dependencies": {
-    "@continuedev/cli": "^1.4.49"
-  }
+  "dependencies": {}
 }
