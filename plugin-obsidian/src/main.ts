@@ -31,10 +31,12 @@ try {
 import { TaskManager } from './task-manager';
 import { TaskSyncSettings, DEFAULT_SETTINGS } from './settings';
 import { TaskSyncSettingTab } from './settings-tab';
+import { SkedPalClient, SkedPalSyncResult } from './skedpal-client';
 
 export default class TaskSyncPlugin extends Plugin {
     settings: TaskSyncSettings;
     taskManager: TaskManager;
+    skedPalClient: SkedPalClient;
 
     async onload() {
         console.log('Loading Obsidian Tasks - SkedPal Sync plugin');
@@ -44,6 +46,9 @@ export default class TaskSyncPlugin extends Plugin {
 
         // Initialize task manager
         this.taskManager = new TaskManager(this.app, this.settings);
+        
+        // Initialize SkedPal client
+        this.skedPalClient = new SkedPalClient(this.settings.skedPalApiKey, this.settings.skedPalWorkspaceId);
         
         // Register settings tab
         this.addSettingTab(new TaskSyncSettingTab(this.app, this));
@@ -65,6 +70,14 @@ export default class TaskSyncPlugin extends Plugin {
             }
         });
 
+        this.addCommand({
+            id: 'test-skedpal-connection',
+            name: 'Test SkedPal connection',
+            callback: () => {
+                this.testConnection();
+            }
+        });
+
         // Register event handlers for task changes
         this.registerEvent(
             this.app.vault.on('modify', (file: TFileType) => {
@@ -73,6 +86,9 @@ export default class TaskSyncPlugin extends Plugin {
                 }
             })
         );
+
+        // Show setup guidance if not configured
+        this.showSetupGuidance();
 
         new Notice('Obsidian Tasks - SkedPal Sync plugin loaded successfully');
     }
@@ -122,22 +138,114 @@ export default class TaskSyncPlugin extends Plugin {
 
     private async syncTasks() {
         try {
+            // Check if configured
+            if (!this.isConfigured()) {
+                this.showSetupRequiredMessage();
+                return;
+            }
+
+            // Test connection first
+            const connectionOk = await this.skedPalClient.testConnection();
+            if (!connectionOk) {
+                new Notice('Failed to connect to SkedPal. Please check your API credentials.');
+                return;
+            }
+
             const tasks = await this.taskManager.collectTasks();
-            new Notice(`Found ${tasks.length} tasks to sync`);
-            // TODO: Implement SkedPal sync logic
+            new Notice(`Found ${tasks.length} tasks to sync to SkedPal...`);
+            
+            const result = await this.skedPalClient.syncTasksToSkedPal(tasks);
+            
+            if (result.success) {
+                new Notice(`Successfully synced ${result.syncedTasks} tasks to SkedPal`);
+                if (result.warnings.length > 0) {
+                    console.warn('SkedPal sync warnings:', result.warnings);
+                }
+            } else {
+                new Notice(`Failed to sync tasks to SkedPal. ${result.errors.length} errors occurred.`);
+                console.error('SkedPal sync errors:', result.errors);
+            }
         } catch (error) {
-            console.error('Error syncing tasks:', error);
-            new Notice('Error syncing tasks: ' + error.message);
+            console.error('Error syncing tasks to SkedPal:', error);
+            new Notice('Error syncing tasks to SkedPal: ' + error.message);
         }
     }
 
     private async syncFromSkedPal() {
         try {
-            // TODO: Implement SkedPal import logic
+            // Check if configured
+            if (!this.isConfigured()) {
+                this.showSetupRequiredMessage();
+                return;
+            }
+
+            // Test connection first
+            const connectionOk = await this.skedPalClient.testConnection();
+            if (!connectionOk) {
+                new Notice('Failed to connect to SkedPal. Please check your API credentials.');
+                return;
+            }
+
             new Notice('Syncing tasks from SkedPal...');
+            
+            // Get tasks from SkedPal
+            const skedPalTasks = await this.skedPalClient.getTasks();
+            new Notice(`Found ${skedPalTasks.length} tasks in SkedPal`);
+            
+            // For now, just show a notice - in a real implementation,
+            // we would convert these to Obsidian tasks and create/update them
+            if (skedPalTasks.length > 0) {
+                new Notice(`Found ${skedPalTasks.length} tasks in SkedPal. Import functionality coming soon.`);
+            } else {
+                new Notice('No tasks found in SkedPal');
+            }
         } catch (error) {
             console.error('Error syncing from SkedPal:', error);
             new Notice('Error syncing from SkedPal: ' + error.message);
+        }
+    }
+
+    private async testConnection() {
+        try {
+            // Check if configured
+            if (!this.isConfigured()) {
+                this.showSetupRequiredMessage();
+                return;
+            }
+
+            new Notice('Testing SkedPal connection...');
+            
+            // Test connection
+            const connectionOk = await this.skedPalClient.testConnection();
+            
+            if (connectionOk) {
+                new Notice('✅ SkedPal connection test successful!');
+            } else {
+                new Notice('❌ Failed to connect to SkedPal. Please check your credentials.');
+            }
+        } catch (error) {
+            console.error('Error testing connection:', error);
+            new Notice('Error testing connection: ' + error.message);
+        }
+    }
+
+    private isConfigured(): boolean {
+        return this.settings.skedPalApiKey.length > 0 && 
+               this.settings.skedPalWorkspaceId.length > 0;
+    }
+
+    private showSetupRequiredMessage(): void {
+        new Notice('⚠️ Please configure SkedPal API credentials in plugin settings first');
+    }
+
+    private showSetupGuidance(): void {
+        if (!this.isConfigured()) {
+            // Show setup guidance only once per session
+            const hasShownGuidance = this.app.loadLocalStorage('task-sync-setup-guidance');
+            if (!hasShownGuidance) {
+                new Notice('🔧 Obsidian Tasks - SkedPal Sync plugin loaded. Please configure your SkedPal API credentials in settings.');
+                this.app.saveLocalStorage('task-sync-setup-guidance', 'true');
+            }
         }
     }
 }
