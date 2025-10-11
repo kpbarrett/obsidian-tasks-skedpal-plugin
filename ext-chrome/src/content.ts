@@ -19,6 +19,7 @@ interface SyncMessage {
 class SkedPalIntegration {
   private isReady: boolean = false;
   private taskElements: Element[] = [];
+  private taskExtractor!: SkedPalTaskExtractor;
 
   constructor() {
     this.initialize();

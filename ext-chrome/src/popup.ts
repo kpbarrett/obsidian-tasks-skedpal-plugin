@@ -7,12 +7,12 @@ interface StatusData {
 }
 
 class PopupController {
-  private statusElement: HTMLElement;
-  private obsidianStatusElement: HTMLElement;
-  private skedpalStatusElement: HTMLElement;
-  private syncToSkedPalButton: HTMLButtonElement;
-  private syncFromSkedPalButton: HTMLButtonElement;
-  private authenticateButton: HTMLButtonElement;
+  private statusElement!: HTMLElement;
+  private obsidianStatusElement!: HTMLElement;
+  private skedpalStatusElement!: HTMLElement;
+  private syncToSkedPalButton!: HTMLButtonElement;
+  private syncFromSkedPalButton!: HTMLButtonElement;
+  private authenticateButton!: HTMLButtonElement;
 
   constructor() {
     this.initializeElements();
