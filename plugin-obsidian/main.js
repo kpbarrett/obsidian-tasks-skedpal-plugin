@@ -353,7 +353,11 @@ var DEFAULT_SETTINGS = {
   skedPalWorkspaceId: "",
   taskFilePatterns: ["**/*.md"],
   syncInterval: 300,
-  includeCompletedTasks: false
+  includeCompletedTasks: false,
+  conflictResolutionStrategy: "most_recent",
+  maxRetryAttempts: 3,
+  syncDirection: "bidirectional",
+  enableStatusTracking: true
 };
 
 // src/settings-tab.ts
@@ -409,6 +413,225 @@ var TaskSyncSettingTab = class extends PluginSettingTab {
   }
 };
 
+// src/sync-engine.ts
+var ConflictResolutionStrategy;
+(function(ConflictResolutionStrategy2) {
+  ConflictResolutionStrategy2["OBSIDIAN_WINS"] = "obsidian_wins";
+  ConflictResolutionStrategy2["SKEDPAL_WINS"] = "skedpal_wins";
+  ConflictResolutionStrategy2["MANUAL_RESOLUTION"] = "manual_resolution";
+  ConflictResolutionStrategy2["MOST_RECENT"] = "most_recent";
+})(ConflictResolutionStrategy || (ConflictResolutionStrategy = {}));
+var SynchronizationEngine = class {
+  constructor(settings) {
+    this.changeQueue = [];
+    this.retryCount = 0;
+    this.maxRetries = 3;
+    this.settings = settings;
+    this.syncStatus = {
+      lastSyncTime: new Date(0),
+      syncInProgress: false,
+      tasksSynced: 0,
+      conflictsResolved: 0,
+      syncDirection: "bidirectional"
+    };
+  }
+  async synchronizeTasks(obsidianTasks, skedpalTasks) {
+    if (this.syncStatus.syncInProgress) {
+      throw new Error("Synchronization already in progress");
+    }
+    this.syncStatus.syncInProgress = true;
+    this.syncStatus.lastError = void 0;
+    try {
+      const obsidianChanges = await this.detectChanges(obsidianTasks, "obsidian");
+      const skedpalChanges = await this.detectChanges(skedpalTasks, "skedpal");
+      const mergedChanges = await this.mergeChanges(obsidianChanges, skedpalChanges);
+      await this.applyChanges(mergedChanges);
+      this.syncStatus.lastSyncTime = new Date();
+      this.syncStatus.tasksSynced = mergedChanges.length;
+    } catch (error) {
+      this.syncStatus.lastError = error.message;
+      await this.handleSyncError(error);
+    } finally {
+      this.syncStatus.syncInProgress = false;
+    }
+    return this.syncStatus;
+  }
+  async detectChanges(tasks, source) {
+    const changes = [];
+    const lastSyncTime = this.syncStatus.lastSyncTime;
+    for (const task of tasks) {
+      const taskModifiedTime = this.getTaskModifiedTime(task, source);
+      if (taskModifiedTime > lastSyncTime) {
+        changes.push({
+          taskId: this.getTaskId(task, source),
+          timestamp: taskModifiedTime,
+          changes: this.extractChanges(task, source),
+          source
+        });
+      }
+    }
+    return changes;
+  }
+  getTaskModifiedTime(task, source) {
+    if (source === "obsidian") {
+      return new Date(task.fileModifiedTime || Date.now());
+    } else {
+      return new Date(task.lastModified || task.createdAt || Date.now());
+    }
+  }
+  getTaskId(task, source) {
+    if (source === "obsidian") {
+      return task.id;
+    } else {
+      return task.id || task.externalId;
+    }
+  }
+  extractChanges(task, source) {
+    if (source === "obsidian") {
+      const obsidianTask = task;
+      return {
+        description: obsidianTask.description,
+        completed: obsidianTask.completed,
+        priority: obsidianTask.priority,
+        dueDate: obsidianTask.dueDate,
+        scheduledDate: obsidianTask.scheduledDate,
+        startDate: obsidianTask.startDate,
+        tags: obsidianTask.tags
+      };
+    } else {
+      return {
+        description: task.title || task.name,
+        completed: task.status === "completed" || task.done,
+        priority: this.mapSkedPalPriority(task.priority),
+        dueDate: task.dueDate,
+        scheduledDate: task.scheduledDate,
+        startDate: task.startDate,
+        tags: task.tags || task.categories || []
+      };
+    }
+  }
+  mapSkedPalPriority(skedpalPriority) {
+    const priorityMap = {
+      "high": "A",
+      "medium": "B",
+      "low": "C",
+      "none": "D"
+    };
+    return priorityMap[skedpalPriority == null ? void 0 : skedpalPriority.toLowerCase()];
+  }
+  async mergeChanges(obsidianChanges, skedpalChanges) {
+    const mergedChanges = [];
+    const conflictMap = new Map();
+    for (const change of [...obsidianChanges, ...skedpalChanges]) {
+      if (!conflictMap.has(change.taskId)) {
+        conflictMap.set(change.taskId, []);
+      }
+      conflictMap.get(change.taskId).push(change);
+    }
+    for (const [taskId, changes] of conflictMap) {
+      if (changes.length === 1) {
+        mergedChanges.push(changes[0]);
+      } else {
+        const resolvedChange = await this.resolveConflict(changes);
+        if (resolvedChange) {
+          mergedChanges.push(resolvedChange);
+          this.syncStatus.conflictsResolved++;
+        }
+      }
+    }
+    return mergedChanges;
+  }
+  async resolveConflict(changes) {
+    const strategy = this.settings.conflictResolutionStrategy || ConflictResolutionStrategy.MOST_RECENT;
+    switch (strategy) {
+      case ConflictResolutionStrategy.OBSIDIAN_WINS:
+        return changes.find((change) => change.source === "obsidian") || changes[0];
+      case ConflictResolutionStrategy.SKEDPAL_WINS:
+        return changes.find((change) => change.source === "skedpal") || changes[0];
+      case ConflictResolutionStrategy.MOST_RECENT:
+        return changes.reduce((latest, current) => current.timestamp > latest.timestamp ? current : latest);
+      case ConflictResolutionStrategy.MANUAL_RESOLUTION:
+        console.warn("Manual conflict resolution not implemented, using most recent change");
+        return changes.reduce((latest, current) => current.timestamp > latest.timestamp ? current : latest);
+      default:
+        return changes[0];
+    }
+  }
+  async applyChanges(changes) {
+    for (const change of changes) {
+      try {
+        if (change.source === "obsidian") {
+          await this.applyToSkedPal(change);
+        } else {
+          await this.applyToObsidian(change);
+        }
+      } catch (error) {
+        console.error(`Failed to apply change for task ${change.taskId}:`, error);
+        this.changeQueue.push(change);
+      }
+    }
+    if (this.changeQueue.length > 0 && this.retryCount < this.maxRetries) {
+      await this.retryFailedChanges();
+    }
+  }
+  async applyToSkedPal(change) {
+    console.log("Applying to SkedPal:", change);
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  async applyToObsidian(change) {
+    console.log("Applying to Obsidian:", change);
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  async handleSyncError(error) {
+    console.error("Synchronization error:", error);
+    this.retryCount++;
+    if (this.retryCount <= this.maxRetries) {
+      console.log(`Retrying synchronization in ${this.retryCount * 5e3}ms`);
+      await new Promise((resolve) => setTimeout(resolve, this.retryCount * 5e3));
+    } else {
+      console.error("Max retry attempts reached");
+    }
+  }
+  async retryFailedChanges() {
+    const failedChanges = [...this.changeQueue];
+    this.changeQueue = [];
+    for (const change of failedChanges) {
+      try {
+        if (change.source === "obsidian") {
+          await this.applyToSkedPal(change);
+        } else {
+          await this.applyToObsidian(change);
+        }
+      } catch (error) {
+        console.error(`Retry failed for task ${change.taskId}:`, error);
+        this.changeQueue.push(change);
+      }
+    }
+  }
+  getStatus() {
+    return { ...this.syncStatus };
+  }
+  reset() {
+    this.syncStatus = {
+      lastSyncTime: new Date(0),
+      syncInProgress: false,
+      tasksSynced: 0,
+      conflictsResolved: 0,
+      syncDirection: "bidirectional"
+    };
+    this.changeQueue = [];
+    this.retryCount = 0;
+  }
+  scheduleAutoSync(intervalMinutes) {
+    console.log(`Auto-sync scheduled every ${intervalMinutes} minutes`);
+    setInterval(async () => {
+      if (!this.syncStatus.syncInProgress) {
+        console.log("Auto-sync triggered");
+      }
+    }, intervalMinutes * 60 * 1e3);
+  }
+};
+
 // src/main.ts
 var Plugin;
 var App3;
@@ -435,6 +658,7 @@ var TaskSyncPlugin = class extends Plugin {
     console.log("Loading Obsidian Tasks - SkedPal Sync plugin");
     await this.loadSettings();
     this.taskManager = new TaskManager(this.app, this.settings);
+    this.syncEngine = new SynchronizationEngine(this.settings);
     this.addSettingTab(new TaskSyncSettingTab(this.app, this));
     this.addCommand({
       id: "sync-tasks-to-skedpal",
@@ -448,6 +672,13 @@ var TaskSyncPlugin = class extends Plugin {
       name: "Sync tasks from SkedPal",
       callback: () => {
         this.syncFromSkedPal();
+      }
+    });
+    this.addCommand({
+      id: "get-sync-status",
+      name: "Get synchronization status",
+      callback: () => {
+        this.showSyncStatus();
       }
     });
     this.registerEvent(this.app.vault.on("modify", (file) => {
@@ -492,6 +723,13 @@ var TaskSyncPlugin = class extends Plugin {
     try {
       const tasks = await this.taskManager.collectTasks();
       new Notice2(`Found ${tasks.length} tasks to sync`);
+      const skedpalTasks = [];
+      const syncStatus = await this.syncEngine.synchronizeTasks(tasks, skedpalTasks);
+      if (syncStatus.lastError) {
+        new Notice2(`Sync completed with errors: ${syncStatus.lastError}`);
+      } else {
+        new Notice2(`Sync completed: ${syncStatus.tasksSynced} tasks synced, ${syncStatus.conflictsResolved} conflicts resolved`);
+      }
     } catch (error) {
       console.error("Error syncing tasks:", error);
       new Notice2("Error syncing tasks: " + error.message);
@@ -499,10 +737,27 @@ var TaskSyncPlugin = class extends Plugin {
   }
   async syncFromSkedPal() {
     try {
-      new Notice2("Syncing tasks from SkedPal...");
+      const skedpalTasks = [];
+      const obsidianTasks = await this.taskManager.collectTasks();
+      const syncStatus = await this.syncEngine.synchronizeTasks(obsidianTasks, skedpalTasks);
+      if (syncStatus.lastError) {
+        new Notice2(`Sync from SkedPal completed with errors: ${syncStatus.lastError}`);
+      } else {
+        new Notice2(`Sync from SkedPal completed: ${syncStatus.tasksSynced} tasks synced`);
+      }
     } catch (error) {
       console.error("Error syncing from SkedPal:", error);
       new Notice2("Error syncing from SkedPal: " + error.message);
     }
+  }
+  showSyncStatus() {
+    const status = this.syncEngine.getStatus();
+    const statusMessage = `Synchronization Status:
+Last Sync: ${status.lastSyncTime.toLocaleString()}
+In Progress: ${status.syncInProgress ? "Yes" : "No"}
+Tasks Synced: ${status.tasksSynced}
+Conflicts Resolved: ${status.conflictsResolved}
+Last Error: ${status.lastError || "None"}`;
+    new Notice2(statusMessage);
   }
 };

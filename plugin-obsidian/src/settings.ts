@@ -7,6 +7,10 @@ export interface TaskSyncSettings {
     taskFilePatterns: string[];
     syncInterval: number;
     includeCompletedTasks: boolean;
+    conflictResolutionStrategy: string;
+    maxRetryAttempts: number;
+    syncDirection: 'bidirectional' | 'toSkedPal' | 'fromSkedPal';
+    enableStatusTracking: boolean;
 }
 
 export const DEFAULT_SETTINGS: TaskSyncSettings = {
@@ -15,5 +19,9 @@ export const DEFAULT_SETTINGS: TaskSyncSettings = {
     skedPalWorkspaceId: '',
     taskFilePatterns: ['**/*.md'],
     syncInterval: 300, // 5 minutes in seconds
-    includeCompletedTasks: false
+    includeCompletedTasks: false,
+    conflictResolutionStrategy: 'most_recent',
+    maxRetryAttempts: 3,
+    syncDirection: 'bidirectional',
+    enableStatusTracking: true
 };
