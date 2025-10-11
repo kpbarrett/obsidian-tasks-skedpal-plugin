@@ -20,6 +20,18 @@
   },
   "homepage": "https://github.com/kpbarrett/obsidian-tasks-skedpal-plugin#readme",
   "dependencies": {
-    "@continuedev/cli": "^1.4.45"
+    "@continuedev/cli": "^1.4.48"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "jest": "^29.7.0",
+    "typescript": "^5.0.0"
+  },
+  "scripts": {
+    "build": "cd plugin-obsidian && npm run build",
+    "dev": "cd plugin-obsidian && npm run dev",
+    "test": "jest tests/ --passWithNoTests",
+    "test:watch": "jest tests/ --watch",
+    "lint": "cd plugin-obsidian && npm run lint"
   }
 }
