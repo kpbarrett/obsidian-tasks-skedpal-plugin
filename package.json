@@ -20,6 +20,6 @@
   },
   "homepage": "https://github.com/kpbarrett/obsidian-tasks-skedpal-plugin#readme",
   "dependencies": {
-    "@continuedev/cli": "^1.4.48"
+    "@continuedev/cli": "^1.4.49"
   }
 }
