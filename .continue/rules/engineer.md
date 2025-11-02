@@ -21,6 +21,7 @@ description: Minimal rules for integration, releases, and traceability.
   - A critical bugfix is merged to `main`, even if `development` has not yet advanced
   - At the end of a phase, sprint, or agreed checkpoint, ensuring all committed work is merged, tested, and released
 - **Project Planning:** Create issues and milestones for development of new features, with a focus on maximizing parallel development
+- **Sprint Planning:** Create and maintain sprint plans based on project requirements, assign tasks to appropriate agent roles, and track progress against sprint goals
 - **Process Improvements:** Continuously evaluate and refine development processes to enhance efficiency and effectiveness
 
 ## Agentic Workflow Responsibilities
